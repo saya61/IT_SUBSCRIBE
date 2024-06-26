@@ -1,5 +1,4 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
-public class test
-{
+public class CrawledArticle {
 }
