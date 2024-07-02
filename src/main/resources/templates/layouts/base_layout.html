@@ -14,10 +14,12 @@
     </th:block>
 </head>
 <body>
-<!-- fragment 선언 및 기본 콘텐츠 추가 -->
+<header layout:fragment="header">
+    <nav th:replace="~{fragments/navbar :: navbarFragment}">네비게이션 바</nav>
+    <h3>Header 부분</h3>
+</header>
 <div layout:fragment="contents">
-    <!-- 이 부분을 개별 페이지 작성 시 채워서 완성 -->
-    <h3>레이아웃의 Contents 부분입니다.</h3>
+    <h3>Contents 부분</h3>
 </div>
 </body>
 </html>

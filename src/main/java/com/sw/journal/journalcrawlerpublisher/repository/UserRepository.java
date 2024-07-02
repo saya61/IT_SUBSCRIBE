@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByUserNickname(String userNickname);
 
-    // 중복 유저 체크
+    // 유저 검색 메서드
     boolean existsByUserNickname(String userNickname);
     boolean existsByUserEmail(String userEmail);
     boolean existsByUserId(String userId);

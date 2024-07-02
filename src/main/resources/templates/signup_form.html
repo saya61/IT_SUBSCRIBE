@@ -11,28 +11,38 @@
 <div layout:fragment="contents" class="container my-3">
     <div class="my-3 border-bottom">
         <div>
-            <h4>회원가입</h4>
+            <h4>Join the DeepTech!</h4>
         </div>
     </div>
     <form th:action="@{/users/signup}" th:object="${userCreateForm}" method="post">
-        <!--        <div th:replace="~{form_errors :: formErrorsFragment}"></div>-->
         <div class="mb-3">
-            <label for="username" class="form-label">사용자ID</label>
-            <input id="username" type="text" th:field="*{username}" class="form-control">
+            <label for="userId" class="form-label">user ID</label>
+            <input id="userId" type="text" th:field="*{userId}" class="form-control">
+            <div th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}" class="invalid-feedback d-block"></div>
         </div>
         <div class="mb-3">
-            <label for="password1" class="form-label">비밀번호</label>
-            <input id="password1" type="password" th:field="*{password1}" class="form-control">
+            <label for="userNickname" class="form-label">nickname</label>
+            <input id="userNickname" type="text" th:field="*{userNickname}" class="form-control">
+            <div th:if="${#fields.hasErrors('userNickname')}" th:errors="*{userNickname}" class="invalid-feedback d-block"></div>
         </div>
         <div class="mb-3">
-            <label for="password2" class="form-label">비밀번호 확인</label>
-            <input id="password2" type="password" th:field="*{password2}" class="form-control">
+            <label for="userEmail" class="form-label">email</label>
+            <input id="userEmail" type="email" th:field="*{userEmail}" class="form-control">
+            <div th:if="${#fields.hasErrors('userEmail')}" th:errors="*{userEmail}" class="invalid-feedback d-block"></div>
         </div>
         <div class="mb-3">
-            <label for="email" class="form-label">이메일</label>
-            <input id="email" type="email" th:field="*{email}" class="form-control">
+            <label for="userPw" class="form-label">password</label>
+            <input id="userPw" type="password" th:field="*{userPw}" class="form-control">
+            <div th:if="${#fields.hasErrors('userPw')}" th:errors="*{userPw}" class="invalid-feedback d-block"></div>
         </div>
-        <button type="submit" class="btn btn-primary">회원가입</button>
+        <div class="mb-3">
+            <label for="userPw2" class="form-label">confirm password</label>
+            <input id="userPw2" type="password" th:field="*{userPw2}" class="form-control">
+            <div th:if="${#fields.hasErrors('userPw2')}" th:errors="*{userPw2}" class="invalid-feedback d-block"></div>
+        </div>
+        <!-- 전역 오류 메시지-->
+        <div th:replace="~{form_errors :: formGlobalErrorsFragment}"></div>
+        <button type="submit" class="btn btn-primary">REGISGTER</button>
     </form>
 </div>
 </body>

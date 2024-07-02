@@ -16,32 +16,37 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void create() {
+    // 유저 생성 메서드
+    public void create(String userId, String userNickname, String userEmail, String userPw) {
         User newUser = new User();
-        newUser.setUserId("test");
-        newUser.setUserPw(passwordEncoder.encode("test"));
+        newUser.setUserId(userId);
+        newUser.setUserNickname(userNickname);
+        newUser.setUserEmail(userEmail);
+        newUser.setUserPw(passwordEncoder.encode(userPw));
         newUser.setUserCreatedAt(now());
-        newUser.setUserNickname("test");
-        newUser.setUserEmail("sample.sam.ple");
-        newUser.setUserRole(UserRole.ADMIN);
+        newUser.setUserRole(UserRole.USER);
 
         // 중복 유저 체크
         validateDuplicateUser(newUser);
         User savedUser = userRepository.save(newUser);
-        System.out.println(savedUser);
     }
 
     // 중복 유저 검사 메서드
     public void validateDuplicateUser(User user) {
+        if (existsByUserId(user.getUserId())) {
+            throw new IllegalStateException("이미 존재하는 아이디입니다.");
+        }
         if (existsByUserNickname(user.getUserNickname())) {
             throw new IllegalStateException("이미 존재하는 닉네임입니다.");
         }
         if (existsByUserEmail(user.getUserEmail())) {
             throw new IllegalStateException("이미 가입된 이메일입니다.");
         }
-        if (existsByUserId(user.getUserId())) {
-            throw new IllegalStateException("이미 존재하는 아이디입니다.");
-        }
+    }
+
+    // 중복 아이디 검사 메서드
+    public boolean existsByUserId(String userId) {
+        return userRepository.existsByUserId(userId);
     }
 
     // 중복 닉네임 검사 메서드
@@ -52,11 +57,5 @@ public class UserService {
     // 중복 이메일 검사 메서드
     public boolean existsByUserEmail(String userEmail) {
         return userRepository.existsByUserEmail(userEmail);
-    }
-
-
-    // 중복 아이디 검사 메서드
-    public boolean existsByUserId(String userId) {
-        return userRepository.existsByUserId(userId);
     }
 }
