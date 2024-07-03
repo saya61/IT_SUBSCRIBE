@@ -44,4 +44,18 @@ public class OurArticle {
 
     @Column(name = "our_publication_date")
     private LocalDateTime ourPublicationDate;
+
+    @Override
+    public String toString() {
+        return "OurArticle{" +
+                "articleNumber=" + articleNumber +
+                ", articleTitle='" + articleTitle + '\'' +
+                ", articleContent='" + articleContent + '\'' +
+                ", articleImageLink='" + articleImageLink + '\'' +
+                ", category=" + category +
+                ", tag=" + tag +
+                ", hashedUrl='" + hashedUrl + '\'' +
+                ", ourPublicationDate=" + ourPublicationDate +
+                '}';
+    }
 }

@@ -11,8 +11,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "tag")
-@Getter
-@Setter
+@Getter @Setter
 public class Tag {
     @Id
     @Column(name = "tag_code", length = 30)
