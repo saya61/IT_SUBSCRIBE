@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserCreateForm {
+public class UserCreateForm {  // DTO 클래스 역할을 하는 Form 클래스
     @NotEmpty(message = "아이디를 입력해주세요.")
     private String userId;
 

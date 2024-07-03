@@ -1,21 +1,42 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
 import com.sw.journal.journalcrawlerpublisher.constant.UserRole;
+import com.sw.journal.journalcrawlerpublisher.domain.SpringUser;
 import com.sw.journal.journalcrawlerpublisher.domain.User;
 import com.sw.journal.journalcrawlerpublisher.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Optional;
+
 import static org.assertj.core.util.DateUtil.now;
 
 @Service
 @Transactional  // All or nothing -> 실패 시 발생하는 예외 처리를 위해 사용
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // 로그인 기능
+    @Override
+    public UserDetails loadUserByUsername(String userId)
+            throws UsernameNotFoundException {
+        Optional<User> registeredUser = userRepository.findByUserId(userId);
+        if(registeredUser.isEmpty()) {
+            throw new UsernameNotFoundException(userId);
+        }
+        // 인증에 사용하기 위해 준비된 UserDetails 구현체
+        return SpringUser.getSpringUserDetails(registeredUser.get());
+    }
+
+    // CRUD 기능 구현
     // 유저 생성 메서드
     public void create(String userId, String userNickname, String userEmail, String userPw) {
         User newUser = new User();

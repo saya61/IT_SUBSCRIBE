@@ -29,8 +29,9 @@ public class UserController {
             Model model
     ) {
         // 1. Form 데이터 검증
+        // 입력값 내용 검사
         validateUserCreateForm(userCreateForm, bindingResult);
-
+        // 입력값 바인딩 검사
         if(bindingResult.hasErrors()) {
             model.addAttribute("userCreateForm", userCreateForm);
             return "signup_form";
@@ -62,7 +63,7 @@ public class UserController {
         return "redirect:/";
     }
 
-    // Form 데이터 검증 메서드
+    // 입력값 검사 메서드
     private void validateUserCreateForm(UserCreateForm userCreateForm, BindingResult bindingResult) {
         // 아이디 중복 확인
         if(userService.existsByUserId(userCreateForm.getUserId())) {
