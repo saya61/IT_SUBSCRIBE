@@ -1,13 +1,9 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 
 @Entity
 @Table(name = "user_favorite_category")
@@ -18,12 +14,13 @@ public class UserFavoriteCategory {
     private UserFavoriteCategoryId id;
 
     @ManyToOne
-    @MapsId("memberNumber")
-    @JoinColumn(name = "member_number")
+    @MapsId("memberId")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @ManyToOne
-    @MapsId("categoryCode")
-    @JoinColumn(name = "category_code")
+    @MapsId("categoryId")
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 }
+

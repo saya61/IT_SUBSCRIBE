@@ -1,11 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,9 +11,8 @@ import lombok.Setter;
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "category_code")
-    private Integer categoryCode;
+    private Long id;
 
-    @Column(name = "category_name", nullable = false)
-    private String categoryName;
+    @Column(nullable = false)
+    private String name;
 }
