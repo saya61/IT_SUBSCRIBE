@@ -29,4 +29,20 @@ public class OurArticle {
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @Column
+    private String source;
+
+    @Override
+    public String toString() {
+        return "OurArticle{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                ", imageLink='" + imageLink + '\'' +
+                ", postDate=" + postDate +
+                ", category=" + category +
+                ", source='" + source + '\'' +
+                '}';
+    }
 }
