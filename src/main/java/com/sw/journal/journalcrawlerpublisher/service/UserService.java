@@ -24,7 +24,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 로그인 기능
+    // 로그인 기능 구현
     @Override
     public UserDetails loadUserByUsername(String userId)
             throws UsernameNotFoundException {

@@ -9,6 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 import com.sw.journal.journalcrawlerpublisher.domain.User;
 
+import java.util.Optional;
+
 import static org.assertj.core.util.DateUtil.now;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,9 +33,21 @@ class UserRepositoryTest {
         newUser.setUserNickname("test");
         newUser.setUserEmail("sample.sam.ple");
         newUser.setUserRole(UserRole.ADMIN);
+        userRepository.save(newUser);
 
-        User savedUser = userRepository.save(newUser);
-        System.out.println(savedUser);
+        assert(userRepository.existsByUserId(newUser.getUserId()));
+    }
+
+    @Test
+    @DisplayName("아이디 필드 기준 유저 검색")
+    public void findByUserId() {
+        create();
+        // 존재하는 유저 검색
+        Optional<User> foundUser = userRepository.findByUserId("test");
+        assert foundUser.isPresent();
+        // 존재하지 않는 유저 검색
+        foundUser = userRepository.findByUserId("test2");
+        assert foundUser.isEmpty();
     }
 
     @Test

@@ -25,6 +25,19 @@ public class SecurityConfig {
                                         // ).denyAll()
                                 ).permitAll()
                 )
+                .formLogin(
+                        (formLogin) ->
+                                formLogin
+                                        .loginPage("/users/login")
+                                        .defaultSuccessUrl("/")
+                )
+                .logout(
+                        (logout) ->
+                                logout
+                                        .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout"))
+                                        .logoutSuccessUrl("/")
+                                        .invalidateHttpSession(true)
+                )
         ;
         return http.build();
     }

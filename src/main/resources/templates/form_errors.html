@@ -7,3 +7,8 @@
      role="alert" th:if="${#fields.hasGlobalErrors()}">
     <div th:each="err : ${#fields.hasGlobalErrors()}" th:text="${err}" />
 </div>
+
+<div th:fragment="simpleFormErrorsFragment" class="alert alert-danger"
+     role="alert" th:if="${param.error}">
+    아이디 또는 비밀번호가 맞지 않습니다. 다시 확인해주세요
+</div>
