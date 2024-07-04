@@ -68,7 +68,7 @@ public class MemberController {
         // 아이디 중복 확인
         if(memberService.existsByUsername(memberCreateForm.getUsername())) {
             bindingResult.rejectValue(
-                    "userName",
+                    "username",
                     "idDuplicationError",
                     "이미 존재하는 아이디입니다."
             );
