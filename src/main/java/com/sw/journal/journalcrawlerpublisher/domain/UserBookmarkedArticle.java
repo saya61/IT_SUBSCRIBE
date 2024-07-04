@@ -1,11 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,12 +13,13 @@ public class UserBookmarkedArticle {
     private UserBookmarkedArticleId id;
 
     @ManyToOne
-    @MapsId("memberNumber")
-    @JoinColumn(name = "member_number")
+    @MapsId("memberId")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @ManyToOne
-    @MapsId("articleNumber")
-    @JoinColumn(name = "our_article_number")
+    @MapsId("articleId")
+    @JoinColumn(name = "article_id", nullable = false)
     private OurArticle article;
 }
+

@@ -1,23 +1,33 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 @Embeddable
 @Getter
 @Setter
 public class UserFavoriteCategoryId implements Serializable {
-    private Integer memberNumber;
-    private Integer categoryCode;
+    @Column(name = "member_id")
+    private Long memberId;
 
-    // Default constructor
-    public UserFavoriteCategoryId() {}
+    @Column(name = "category_id")
+    private Long categoryId;
 
-    // Parameterized constructor
-    public UserFavoriteCategoryId(Integer memberNumber, Integer categoryCode) {
-        this.memberNumber = memberNumber;
-        this.categoryCode = categoryCode;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserFavoriteCategoryId that = (UserFavoriteCategoryId) o;
+        return Objects.equals(memberId, that.memberId) && Objects.equals(categoryId, that.categoryId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(memberId, categoryId);
     }
 }

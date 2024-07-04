@@ -1,13 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,17 +11,16 @@ import lombok.Setter;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comment_id")
-    private Integer commentId;
+    private Long id;
 
-    @Column(name = "comment_content", nullable = false, length = 255)
-    private String commentContent;
+    @Column(nullable = false)
+    private String content;
 
     @ManyToOne
-    @JoinColumn(name = "member_number", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @ManyToOne
-    @JoinColumn(name = "our_article_number", nullable = false)
+    @JoinColumn(name = "article_id", nullable = false)
     private OurArticle article;
 }
