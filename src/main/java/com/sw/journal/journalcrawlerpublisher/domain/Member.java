@@ -1,5 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
+import com.sw.journal.journalcrawlerpublisher.constant.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,5 +32,18 @@ public class Member {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private String role;
+    private Role role;
+
+    @Override
+    public String toString() {
+        return "Member{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", nickname='" + nickname + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", createdAt=" + createdAt +
+                ", role='" + role + '\'' +
+                '}';
+    }
 }

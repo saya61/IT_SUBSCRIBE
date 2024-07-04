@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/base_layout}"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+</head>
+<body>
+<div layout:fragment="contents" class="container my-3">
+    <div class="my-3 border-bottom">
+        <div>
+            <h4>Join the DeepTech!</h4>
+        </div>
+    </div>
+    <form th:action="@{/members/signup}" th:object="${memberCreateForm}" method="post">
+        <div class="mb-3">
+            <label for="username" class="form-label">member ID</label>
+            <input id="username" type="text" th:field="*{username}" class="form-control">
+            <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="invalid-feedback d-block"></div>
+        </div>
+        <div class="mb-3">
+            <label for="nickname" class="form-label">nickname</label>
+            <input id="nickname" type="text" th:field="*{nickname}" class="form-control">
+            <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" class="invalid-feedback d-block"></div>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">email</label>
+            <input id="email" type="email" th:field="*{email}" class="form-control">
+            <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback d-block"></div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">password</label>
+            <input id="password" type="password" th:field="*{password}" class="form-control">
+            <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback d-block"></div>
+        </div>
+        <div class="mb-3">
+            <label for="password2" class="form-label">confirm password</label>
+            <input id="password2" type="password" th:field="*{password2}" class="form-control">
+            <div th:if="${#fields.hasErrors('password2')}" th:errors="*{password2}" class="invalid-feedback d-block"></div>
+        </div>
+        <!-- 전역 오류 메시지-->
+        <div th:replace="~{form_errors :: formGlobalErrorsFragment}"></div>
+        <button type="submit" class="btn btn-primary">REGISGTER</button>
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/base_layout}"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인</title>
+</head>
+<body>
+<div layout:fragment="contents" class="container my-3">
+    <div class="my-3 border-bottom">
+        <div>
+            <h1>Login in to DeepTech!</h1>
+            <h4>You need to login to continue</h4>
+        </div>
+    </div>
+    <form th:action="@{/members/login}" method="post">
+        <div class="mb-3">
+            <label for="username" class="form-label">member ID</label>
+            <input type="text" name="username" id="username" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">password</label>
+            <input type="password" name="password" id="password"  class="form-control">
+        </div>
+        <!-- 전역 오류 메시지-->
+        <div th:replace="~{form_errors :: simpleFormErrorsFragment}"></div>
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">LOG IN</button>
+        </div>
+        <div class="mb-3" style="float:left">
+            <h4>need an account?</h4>
+        </div>
+        <div class="mb-3" style="float:left">
+            <a href="/members/signup">&nbsp;Register here</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>
