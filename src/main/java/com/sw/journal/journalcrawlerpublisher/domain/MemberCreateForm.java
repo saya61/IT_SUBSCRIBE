@@ -8,21 +8,21 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserCreateForm {  // DTO 클래스 역할을 하는 Form 클래스
+public class MemberCreateForm {  // DTO 클래스 역할을 하는 Form 클래스
     @NotEmpty(message = "아이디를 입력해주세요.")
-    private String userId;
+    private String username;
 
     @NotEmpty(message = "닉네임을 입력해주세요.")
-    private String userNickname;
+    private String nickname;
 
     @NotEmpty(message = "이메일을 입력해주세요.")
     @Email
-    private String userEmail;
+    private String email;
 
     @NotEmpty(message = "비밀번호를 입력해주세요.")
-    private String userPw;
+    private String password;
 
     @Size(min = 8, max = 16)
     @NotEmpty(message = "비밀번호를 다시 입력해주세요.")
-    private String userPw2;
+    private String password2;
 }

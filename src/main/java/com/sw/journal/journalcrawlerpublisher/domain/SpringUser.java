@@ -18,7 +18,7 @@ public class SpringUser extends User{
     }
 
     // 엔티티 유저와 스프링 시큐리티 유저 간 데이터 주고받는 부분
-    public static UserDetails getSpringUserDetails(com.sw.journal.journalcrawlerpublisher.domain.User appUser) {
-        return User.builder().username(appUser.getUserId()).password(appUser.getUserPw()).roles(appUser.getUserRole().toString()).build();
+    public static UserDetails getSpringUserDetails(Member appUser) {
+        return User.builder().username(appUser.getUsername()).password(appUser.getPassword()).roles(appUser.getRole().toString()).build();
     }
 }

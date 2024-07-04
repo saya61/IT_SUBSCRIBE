@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .formLogin(
                         (formLogin) ->
                                 formLogin
-                                        .loginPage("/users/login")
+                                        .loginPage("/members/login")
                                         .defaultSuccessUrl("/")
                 )
                 .logout(

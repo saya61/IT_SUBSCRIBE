@@ -1,5 +1,5 @@
 package com.sw.journal.journalcrawlerpublisher.constant;
 
-public enum UserRole {
+public enum Role {
     SUPER_ADMIN, ADMIN, USER
 }

@@ -15,14 +15,14 @@
             <h4>You need to login to continue</h4>
         </div>
     </div>
-    <form th:action="@{/users/login}" method="post">
+    <form th:action="@{/members/login}" method="post">
         <div class="mb-3">
-            <label for="userId" class="form-label">user ID</label>
-            <input type="text" name="userId" id="userId" class="form-control">
+            <label for="username" class="form-label">member ID</label>
+            <input type="text" name="username" id="username" class="form-control">
         </div>
         <div class="mb-3">
-            <label for="userPw" class="form-label">password</label>
-            <input type="password" name="userPw" id="userPw"  class="form-control">
+            <label for="password" class="form-label">password</label>
+            <input type="password" name="password" id="password"  class="form-control">
         </div>
         <!-- 전역 오류 메시지-->
         <div th:replace="~{form_errors :: simpleFormErrorsFragment}"></div>
@@ -33,7 +33,7 @@
             <h4>need an account?</h4>
         </div>
         <div class="mb-3" style="float:left">
-            <a href="/users/signup">&nbsp;Register here</a>
+            <a href="/members/signup">&nbsp;Register here</a>
         </div>
     </form>
 </div>
