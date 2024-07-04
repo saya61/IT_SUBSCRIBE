@@ -8,11 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+
 import java.util.List;
 
 // wildmantle 2024-07-03
 @Repository
-public interface OurArticleRepository extends JpaRepository<OurArticle, Integer> {
+public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
     // 카테고리별 기사 검색
     List<OurArticle> findByCategory(Category category);
 

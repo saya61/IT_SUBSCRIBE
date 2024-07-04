@@ -1,15 +1,9 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,43 +13,36 @@ import java.time.LocalDateTime;
 public class OurArticle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "our_article_number")
-    private Integer articleNumber;
+    private Long id;
 
-    @Column(name = "our_article_title", nullable = false, length = 50)
-    private String articleTitle;
+    @Column(nullable = false)
+    private String title;
 
-    @Column(name = "our_article_content", nullable = false)
-    private String articleContent;
+    @Column(nullable = false)
+    private String content;
 
-    @Column(name = "our_article_image_link", length = 255)
-    private String articleImageLink;
+    private String imageLink;
+
+    @Column(nullable = false)
+    private LocalDateTime postDate;
 
     @ManyToOne
-    @JoinColumn(name = "category_code")
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "tag_code")
-    private Tag tag;
-
-    @Column(name = "hashed_url", length = 255)
-    private String hashedUrl;
-
-    @Column(name = "our_publication_date")
-    private LocalDateTime ourPublicationDate;
+    @Column
+    private String source;
 
     @Override
     public String toString() {
         return "OurArticle{" +
-                "articleNumber=" + articleNumber +
-                ", articleTitle='" + articleTitle + '\'' +
-                ", articleContent='" + articleContent + '\'' +
-                ", articleImageLink='" + articleImageLink + '\'' +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                ", imageLink='" + imageLink + '\'' +
+                ", postDate=" + postDate +
                 ", category=" + category +
-                ", tag=" + tag +
-                ", hashedUrl='" + hashedUrl + '\'' +
-                ", ourPublicationDate=" + ourPublicationDate +
+                ", source='" + source + '\'' +
                 '}';
     }
 }
