@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/base_layout}"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지</title>
+</head>
+<body>
+<div layout:fragment="contents" class="container my-3">
+    <div sec:authorize="isAuthenticated()">
+        <h3>Welcome, <span sec:authentication="name"></span>!</h3>
+    </div>
+    <div class="my-3 border-bottom">
+        <h1>Reset Password</h1>
+    </div>
+    <form th:action="@{/members/mypage}" th:object="${updatePwForm}" method="post">
+        <div class="mb-3">
+            <label for="currentPassword" class="form-label">현재 비밀번호</label>
+            <input type="password" name="currentPassword" id="currentPassword" class="form-control">
+            <div th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}" class="invalid-feedback d-block"></div>
+        </div>
+        <div class="mb-3">
+            <label for="newPassword" class="form-label">새 비밀번호</label>
+            <input type="password" name="newPassword" id="newPassword"  class="form-control">
+            <div th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}" class="invalid-feedback d-block"></div>
+        </div>
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label">새 비밀번호 확인</label>
+            <input type="password" name="confirmPassword" id="confirmPassword"  class="form-control">
+            <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback d-block"></div>
+        </div>
+        <!-- 전역 오류 메시지-->
+        <div th:replace="~{form_errors :: formGlobalErrorsFragment}"></div>
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">SET PASSWORD</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
