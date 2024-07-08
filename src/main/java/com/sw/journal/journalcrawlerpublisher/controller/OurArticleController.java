@@ -3,7 +3,7 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
 import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
-import com.sw.journal.journalcrawlerpublisher.service.RecommendedArticleService;
+import com.sw.journal.journalcrawlerpublisher.service.OurArticleService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +15,11 @@ import java.util.List;
 @RequestMapping("/article")
 public class OurArticleController {
 
-    private final RecommendedArticleService recommendedArticleService;
+    private final OurArticleService ourArticleService;
 
     @Autowired
-    public OurArticleController(RecommendedArticleService recommendedArticleService) {
-        this.recommendedArticleService = recommendedArticleService;
+    public OurArticleController(OurArticleService ourArticleService) {
+        this.ourArticleService = ourArticleService;
     }
 
     // 카테고리 1개로 기사 검색
@@ -27,7 +27,7 @@ public class OurArticleController {
     public List<OurArticle> getArticlesByCategory(@PathVariable Long categoryId) {
         Category category = new Category();
         category.setId(categoryId);
-        return recommendedArticleService.findByCategory(category);
+        return ourArticleService.findByCategory(category);
     }
 
     // 카테고리 n개로 검색
@@ -38,7 +38,7 @@ public class OurArticleController {
             category.setId(id);
             return category;
         }).toList();
-        return recommendedArticleService.findByCategories(categories);
+        return ourArticleService.findByCategories(categories);
     }
 
     // 태그 1개로 기사 검색
@@ -46,7 +46,7 @@ public class OurArticleController {
     public List<OurArticle> getArticlesByTag(@PathVariable Long tagCode) {
         Tag tag = new Tag();
         tag.setId(tagCode);
-        return recommendedArticleService.findByTag(tag);
+        return ourArticleService.findByTag(tag);
     }
 
     // n개 태그로 검색
@@ -57,7 +57,7 @@ public class OurArticleController {
             tag.setId(code);
             return tag;
         }).toList();
-        return recommendedArticleService.findByTags(tags);
+        return ourArticleService.findByTags(tags);
     }
 
     // 카테고리 1개, 태그 1개로 기사 검색
@@ -67,7 +67,7 @@ public class OurArticleController {
         category.setId(categoryId);
         Tag tag = new Tag();
         tag.setId(tagCode);
-        return recommendedArticleService.findByCategoryAndTag(category, tag);
+        return ourArticleService.findByCategoryAndTag(category, tag);
     }
 
     // 1개 카테고리, n개 태그로 검색
@@ -80,7 +80,7 @@ public class OurArticleController {
             tag.setId(code);
             return tag;
         }).toList();
-        return recommendedArticleService.findByCategoryAndTags(category, tags);
+        return ourArticleService.findByCategoryAndTags(category, tags);
     }
 
     // n개 카테고리, 1개 태그로 검색
@@ -93,7 +93,7 @@ public class OurArticleController {
         }).toList();
         Tag tag = new Tag();
         tag.setId(tagCode);
-        return recommendedArticleService.findByCategoriesAndTag(categories, tag);
+        return ourArticleService.findByCategoriesAndTag(categories, tag);
     }
 
     // n개 카테고리, n개 태그로 검색
@@ -109,7 +109,7 @@ public class OurArticleController {
             tag.setId(code);
             return tag;
         }).toList();
-        return recommendedArticleService.findByCategoriesAndTags(categories, tags);
+        return ourArticleService.findByCategoriesAndTags(categories, tags);
     }
 
     @Getter @Setter
