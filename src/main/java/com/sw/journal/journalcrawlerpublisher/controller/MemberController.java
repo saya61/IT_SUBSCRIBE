@@ -1,24 +1,18 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
-import com.sw.journal.journalcrawlerpublisher.domain.Member;
-import com.sw.journal.journalcrawlerpublisher.domain.MemberCreateForm;
-import com.sw.journal.journalcrawlerpublisher.domain.UpdatePwForm;
+import com.sw.journal.journalcrawlerpublisher.domain.*;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -40,43 +34,7 @@ public class MemberController {
             BindingResult bindingResult,
             Model model
     ) {
-        // 1. Form 데이터 검증
-        // 입력값 내용 검사
-        validateMemberCreateForm(memberCreateForm, bindingResult);
-        // 입력값 바인딩 검사
-        if(bindingResult.hasErrors()) {
-            model.addAttribute("memberCreateForm", memberCreateForm);
-            return "signup_form";
-        }
-
-        // 2. 백엔드 검증
-        try {
-            memberService.create(
-                    memberCreateForm.getUsername(), memberCreateForm.getNickname(),
-                    memberCreateForm.getEmail(), memberCreateForm.getPassword()
-            );
-        } catch (IllegalArgumentException e) {
-            bindingResult.reject(
-                    "signupFailed",
-                    "이미 가입된 계정입니다."
-            );
-            model.addAttribute("memberCreateForm", memberCreateForm);
-            return "signup_form";
-        } catch (Exception e) {
-            bindingResult.reject(
-                    "signupFailed",
-                    e.getMessage()
-            );
-            model.addAttribute("memberCreateForm", memberCreateForm);
-            return "signup_form";
-        }
-
-        // 3. 회원 가입 성공
-        return "redirect:/";
-    }
-
-    // 입력값 검사 메서드
-    private void validateMemberCreateForm(MemberCreateForm memberCreateForm, BindingResult bindingResult) {
+        // 1. 입력값 내용 검사
         // 아이디 중복 확인
         if(memberService.existsByUsername(memberCreateForm.getUsername())) {
             bindingResult.rejectValue(
@@ -112,16 +70,36 @@ public class MemberController {
                     "비밀번호가 일치하지 않습니다."
             );
         }
+        // 2. 입력값 바인딩 검사
+        if(bindingResult.hasErrors()) {
+            model.addAttribute("memberCreateForm", memberCreateForm);
+            return "signup_form";
+        }
 
-          // @Pattern 어노테이션으로 대체?
-//        // 비밀번호에 숫자가 포함됐는지 확인
-//        if(!memberCreateForm.getPassword().matches("^(?=.*[a-zA-Z])(?=.*[0-9]).+$")) {
-//            bindingResult.rejectValue(
-//                    "password",
-//                    "passwordRuleError",
-//                    "비밀번호는 영문자와 숫자를 조합해야 합니다."
+//        // 백엔드 검증
+//        try {
+//            memberService.create(
+//                    memberCreateForm.getUsername(), memberCreateForm.getNickname(),
+//                    memberCreateForm.getEmail(), memberCreateForm.getPassword()
 //            );
+//        } catch (IllegalArgumentException e) {
+//            bindingResult.reject(
+//                    "signupFailed",
+//                    "이미 가입된 계정입니다."
+//            );
+//            model.addAttribute("memberCreateForm", memberCreateForm);
+//            return "signup_form";
+//        } catch (Exception e) {
+//            bindingResult.reject(
+//                    "signupFailed",
+//                    e.getMessage()
+//            );
+//            model.addAttribute("memberCreateForm", memberCreateForm);
+//            return "signup_form";
 //        }
+
+        // 3. 회원 가입 성공
+        return "redirect:/";
     }
 
     @GetMapping("/login")
@@ -130,49 +108,132 @@ public class MemberController {
     }
 
     @GetMapping("/mypage")
-    public String mypage(UpdatePwForm updatePwForm) {
+    public String mypage(Model model) {
+        // 사용자 인증
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Optional<Member> member = memberRepository.findByUsername(currentUsername);
+        if (member.isPresent()) {
+            model.addAttribute("member", member.get());
+            model.addAttribute("memberNicknameUpdateForm", new MemberNicknameUpdateForm());
+            model.addAttribute("memberEmailUpdateForm", new MemberEmailUpdateForm());
+            model.addAttribute("memberPwUpdateForm", new MemberPwUpdateForm());
+        }
         return "mypage_form";
     }
 
-    @PostMapping("/mypage")
-    public String updatePassword(@Valid UpdatePwForm updatePwForm,
+    @PostMapping("/mypage/updateNickname")
+    public String updateNickname(@Valid MemberNicknameUpdateForm memberNicknameUpdateForm,
                                  BindingResult bindingResult,
                                  Model model) {
-        // 현재 사용자 id를 가져옴
+        // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-        // 현재 사용자 비밀번호를 가져옴
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
         Member currentMember = member.get();
-        String currentPassword = member.get().getPassword();
 
-        // 1. Form 데이터 검증
-        // 입력값 내용 검사
-            if (!updatePwForm.getNewPassword().equals(updatePwForm.getConfirmPassword())) {
-                bindingResult.rejectValue(
-                        "confirmPassword",
-                        "newPasswordCheckError",
-                        "비밀번호가 일치하지 않습니다."
-                );
-            }
+        // 1. 입력값 내용 검사
+        // 변경하려는 닉네임이 이미 존재하면 중복 오류 반환
+        if (memberService.existsByNickname(memberNicknameUpdateForm.getNickname())) {
+            bindingResult.rejectValue("nickname", "nicknameDuplicationError", "이미 존재하는 닉네임입니다.");
+        }
 
-            if (!passwordEncoder.matches(updatePwForm.getCurrentPassword(), currentPassword)) {
-                bindingResult.rejectValue(
-                        "confirmPassword",
-                        "passwordCheckError",
-                        "잘못된 비밀번호입니다."
-                );
-            }
-
-        // 입력값 바인딩 검사
+        // 2. 입력값 바인딩 검사
         if (bindingResult.hasErrors()) {
-            model.addAttribute("updatePwForm", updatePwForm);
+            model.addAttribute("member", currentMember);
+            model.addAttribute("memberNicknameUpdateForm", memberNicknameUpdateForm);
+            model.addAttribute("memberEmailUpdateForm", new MemberEmailUpdateForm());
+            model.addAttribute("memberPwUpdateForm", new MemberPwUpdateForm());
             return "mypage_form";
         }
 
-        // 비밀번호 변경
-        currentMember.updatePassword(passwordEncoder.encode(updatePwForm.getNewPassword()));
+        // 3. 닉네임 변경
+        if (!memberNicknameUpdateForm.getNickname().isEmpty()) {
+            currentMember.setNickname(memberNicknameUpdateForm.getNickname());
+        }
         memberRepository.save(currentMember);
         return "redirect:/";
     }
+
+    @PostMapping("/mypage/updateEmail")
+    public String updateEmail(@Valid MemberEmailUpdateForm memberEmailUpdateForm,
+                              BindingResult bindingResult,
+                              Model model) {
+        // 사용자 인증
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Optional<Member> member = memberRepository.findByUsername(currentUsername);
+        Member currentMember = member.get();
+
+        // 1. 입력값 내용 검사
+        // 변경하려는 이메일이 이미 존재하면 중복 오류 반환
+        if (memberService.existsByEmail(memberEmailUpdateForm.getEmail())) {
+            bindingResult.rejectValue("email", "emailDuplicationError", "이미 가입된 이메일입니다.");
+        }
+
+        // 2. 입력값 바인딩 검사
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("member", currentMember);
+            model.addAttribute("memberNicknameUpdateForm", new MemberNicknameUpdateForm());
+            model.addAttribute("memberEmailUpdateForm", memberEmailUpdateForm);
+            model.addAttribute("memberPwUpdateForm", new MemberPwUpdateForm());
+            return "mypage_form";
+        }
+
+        // 3. 이메일 변경
+        if (!memberEmailUpdateForm.getEmail().isEmpty()) {
+            currentMember.setEmail(memberEmailUpdateForm.getEmail());
+        }
+        memberRepository.save(currentMember);
+        return "redirect:/";
+    }
+
+    @PostMapping("/mypage/updatePassword")
+    public String updatePassword(@Valid MemberPwUpdateForm memberPwUpdateForm,
+                                 BindingResult bindingResult,
+                                 Model model) {
+        // 사용자 인증
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Optional<Member> member = memberRepository.findByUsername(currentUsername);
+        Member currentMember = member.get();
+        // 현재 로그인한 사용자의 비밀번호를 가져옴
+        String currentPassword = currentMember.getPassword();
+
+        // 1. 입력값 내용 검사
+        // 변경 비밀번호, 변경 비밀번호 재입력값 비교
+        if (!memberPwUpdateForm.getNewPassword().equals(memberPwUpdateForm.getConfirmPassword())) {
+            bindingResult.rejectValue(
+                    "confirmPassword",
+                    "newPasswordCheckError",
+                    "비밀번호가 일치하지 않습니다."
+            );
+        }
+        // 현재 비밀번호값 비교
+        if (!passwordEncoder.matches(memberPwUpdateForm.getCurrentPassword(), currentPassword)) {
+            bindingResult.rejectValue(
+                    "currentPassword",
+                    "passwordCheckError",
+                    "잘못된 비밀번호입니다."
+            );
+        }
+
+        // 2. 입력값 바인딩 검사
+        if(bindingResult.hasErrors()) {
+            model.addAttribute("member", currentMember);
+            model.addAttribute("memberNicknameUpdateForm", new MemberNicknameUpdateForm());
+            model.addAttribute("memberEmailUpdateForm", new MemberEmailUpdateForm());
+            model.addAttribute("memberPwUpdateForm", memberPwUpdateForm);
+            return "mypage_form";
+        }
+
+        // 3. 비밀번호 변경
+        if (!memberPwUpdateForm.getNewPassword().isEmpty()) {
+            currentMember.setPassword(passwordEncoder.encode(memberPwUpdateForm.getNewPassword()));
+        }
+        memberRepository.save(currentMember);
+        return "redirect:/";
+    }
+
+
 }

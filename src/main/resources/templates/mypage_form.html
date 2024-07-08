@@ -10,26 +10,49 @@
 </head>
 <body>
 <div layout:fragment="contents" class="container my-3">
-    <div sec:authorize="isAuthenticated()">
-        <h3>Welcome, <span sec:authentication="name"></span>!</h3>
-    </div>
     <div class="my-3 border-bottom">
-        <h1>Reset Password</h1>
+        <h2>User Info</h2>
     </div>
-    <form th:action="@{/members/mypage}" th:object="${updatePwForm}" method="post">
+    <form th:action="@{/members/mypage/updateNickname}" th:object="${memberNicknameUpdateForm}" method="post">
+        <label for="nickname"><h4>Nickname : <span th:text="${member.nickname}"></span></h4></label>
+        <input type="text" name="nickname" id="nickname" th:field="*{nickname}" class="form-control">
+        <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" class="invalid-feedback d-block"></div>
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">SET NICKNAME</button>
+        </div>
+    </form>
+    <div>
+        <h4>Joined on : <span th:text="${member.createdAt}"></span></h4></label>
+    </div>
+    <div>
+        <h4>User id : <span th:text="${member.username}"></span></h4></label>
+    </div>
+    <form th:action="@{/members/mypage/updateEmail}" th:object="${memberEmailUpdateForm}" method="post">
+        <label for="email"><h4>Email : <span th:text="${member.email}"></span></h4></label>
+        <input type="text" name="email" id="email" th:field="*{email}" class="form-control">
+        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback d-block"></div>
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">SET EMAIL</button>
+        </div>
+    </form>
+
+    <div class="my-3 border-bottom">
+        <h2>Change Password</h2>
+    </div>
+    <form th:action="@{/members/mypage/updatePassword}" th:object="${memberPwUpdateForm}" method="post">
         <div class="mb-3">
             <label for="currentPassword" class="form-label">현재 비밀번호</label>
-            <input type="password" name="currentPassword" id="currentPassword" class="form-control">
+            <input type="password" name="currentPassword" id="currentPassword" th:field="*{currentPassword}" class="form-control">
             <div th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}" class="invalid-feedback d-block"></div>
         </div>
         <div class="mb-3">
             <label for="newPassword" class="form-label">새 비밀번호</label>
-            <input type="password" name="newPassword" id="newPassword"  class="form-control">
+            <input type="password" name="newPassword" id="newPassword" th:field="*{newPassword}" class="form-control">
             <div th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}" class="invalid-feedback d-block"></div>
         </div>
         <div class="mb-3">
             <label for="confirmPassword" class="form-label">새 비밀번호 확인</label>
-            <input type="password" name="confirmPassword" id="confirmPassword"  class="form-control">
+            <input type="password" name="confirmPassword" id="confirmPassword" th:field="*{confirmPassword}" class="form-control">
             <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback d-block"></div>
         </div>
         <!-- 전역 오류 메시지-->

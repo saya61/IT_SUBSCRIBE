@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UpdatePwForm {  // DTO 클래스 역할을 하는 Form 클래스
+public class MemberPwUpdateForm { // DTO 클래스 역할을 하는 Form 클래스
     @NotEmpty(message = "현재 비밀번호를 입력해주세요.")
     private String currentPassword;
 
