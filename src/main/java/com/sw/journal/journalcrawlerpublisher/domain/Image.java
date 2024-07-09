@@ -5,14 +5,18 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tag")
 @Getter @Setter
-public class Tag {
+@Table(name = "Image")
+public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
-}
+    @Column(nullable = true)
+    private String imgUrl;
 
+    @ManyToOne
+    @JoinColumn(name = "ourArticle_id", nullable = false)
+    private OurArticle ourArticle;
+
+}

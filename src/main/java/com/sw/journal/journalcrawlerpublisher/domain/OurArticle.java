@@ -18,19 +18,18 @@ public class OurArticle {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    //@Lob    // 큰 문자열을 저장하기 위한 어노테이션
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String content;
-
-    private String imageLink;
 
     @Column(nullable = false)
     private LocalDateTime postDate;
 
-    @ManyToOne
+    @ManyToOne  //@OneToOne 이 맞는거 같다
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @Column
+    @Column(unique = true, nullable = false)
     private String source;
 
     @Override
@@ -39,7 +38,6 @@ public class OurArticle {
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
-                ", imageLink='" + imageLink + '\'' +
                 ", postDate=" + postDate +
                 ", category=" + category +
                 ", source='" + source + '\'' +

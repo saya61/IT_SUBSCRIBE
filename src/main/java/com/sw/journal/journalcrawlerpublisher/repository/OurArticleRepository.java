@@ -9,10 +9,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 // wild-mantle 07-08
 @Repository
 public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
+    // 기사 URL로 기사 검색
+    Optional<OurArticle> findBySource(String source);
 
     // 카테고리별 기사 검색
     List<OurArticle> findByCategory(Category category);

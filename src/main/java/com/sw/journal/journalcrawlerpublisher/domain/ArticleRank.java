@@ -14,7 +14,7 @@ public class ArticleRank {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "article_id", nullable = false)
+    @JoinColumn(name = "article_id", nullable = false, unique = true)
     private OurArticle article;
 
     @Column(nullable = false)
