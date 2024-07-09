@@ -3,7 +3,9 @@ package com.sw.journal.journalcrawlerpublisher.service;
 import com.sw.journal.journalcrawlerpublisher.constant.Role;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.domain.SpringUser;
+import com.sw.journal.journalcrawlerpublisher.domain.VerificationCode;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.VerificationCodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,7 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 
 
 @Service
@@ -21,6 +26,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
+    private final VerificationCodeRepository verificationCodeRepository;
     private final PasswordEncoder passwordEncoder;
 
     // 로그인 기능 구현
@@ -28,7 +34,7 @@ public class MemberService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
         Optional<Member> registeredUser = memberRepository.findByUsername(username);
-        if(registeredUser.isEmpty()) {
+        if (registeredUser.isEmpty()) {
             throw new UsernameNotFoundException(username);
         }
         // 인증에 사용하기 위해 준비된 UserDetails 구현체
@@ -77,5 +83,31 @@ public class MemberService implements UserDetailsService {
     // 중복 이메일 검사 메서드
     public boolean existsByEmail(String email) {
         return memberRepository.existsByEmail(email);
+    }
+
+    // 난수 생성 메서드
+    public String sendVerificationCode(String email) {
+        String code = String.format("%06d", new Random().nextInt(999999));
+        VerificationCode verificationCode = new VerificationCode();
+        verificationCode.setEmail(email);
+        verificationCode.setCode(code);
+        verificationCode.setCreatedAt(LocalDateTime.now());
+        verificationCodeRepository.save(verificationCode);
+        return code;
+    }
+
+    // 난수 검증 메서드
+    public boolean verifyCode(String email, String code) {
+        Optional<VerificationCode> optionalVerificationCode = verificationCodeRepository.findByEmail(email);
+        if (optionalVerificationCode.isPresent()) {
+            VerificationCode verificationCode = optionalVerificationCode.get();
+            return verificationCode.getCode().equals(code);
+        }
+        return false;
+    }
+
+    // 난수 삭제 메서드
+    public void deleteCode(String email) {
+        verificationCodeRepository.deleteByEmail(email);
     }
 }

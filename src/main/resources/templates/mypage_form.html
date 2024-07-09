@@ -22,10 +22,10 @@
         </div>
     </form>
     <div>
-        <h4>Joined on : <span th:text="${member.createdAt}"></span></h4></label>
+        <h4>Joined on : <span th:text="${member.createdAt}"></span></h4>
     </div>
     <div>
-        <h4>User id : <span th:text="${member.username}"></span></h4></label>
+        <h4>User id : <span th:text="${member.username}"></span></h4>
     </div>
     <form th:action="@{/members/mypage/updateEmail}" th:object="${memberEmailUpdateForm}" method="post">
         <label for="email"><h4>Email : <span th:text="${member.email}"></span></h4></label>

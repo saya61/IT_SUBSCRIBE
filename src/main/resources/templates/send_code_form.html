@@ -1,0 +1,19 @@
+<!-- resources/templates/send_code_form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Send Verification Code</title>
+</head>
+<body>
+<h2>Send Verification Code</h2>
+<form action="/members/sendCode" method="post" th:object="${memberCreateForm}">
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" th:field="*{email}">
+        <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+    </div>
+    <button type="submit">Send Code</button>
+</form>
+</body>
+</html>

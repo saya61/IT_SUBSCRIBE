@@ -1,0 +1,21 @@
+<!-- resources/templates/verify_code_form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Code</title>
+</head>
+<body>
+<h2>Verify Code</h2>
+<form action="/members/verifyCode" method="post">
+    <input type="hidden" name="email" th:value="${email}" th:object="${memberCreateForm}">
+    <div>
+        <label for="code">Verification Code:</label>
+        <input type="text" id="code" name="code">
+        <span th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></span>
+        <span th:if="${codeError}" th:text="${codeError}"></span>
+    </div>
+    <button type="submit">Verify Code</button>
+</form>
+</body>
+</html>
