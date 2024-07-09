@@ -1,7 +1,9 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
 import com.sw.journal.journalcrawlerpublisher.domain.*;
+import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,7 +14,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,6 +26,8 @@ public class MemberRestController {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
+    private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
+    private final CategoryRepository categoryRepository;
 
     // 아이디  중복 확인
     @PostMapping("/checkId")
@@ -216,5 +223,67 @@ public class MemberRestController {
         }
         memberRepository.save(currentMember);
         return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
+    // 선호 카테고리 목록 출력
+    @GetMapping("mypage/getFavoriteCategory")
+    public ResponseEntity<String> getFavoriteCategory() throws IOException {
+        // 사용자 인증
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Optional<Member> member = memberRepository.findByUsername(currentUsername);
+
+        // 권한 없음
+        if (member.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        // 현재 사용자 id로 선호 카테고리 검색
+        Member currentMember = member.get();
+        List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMember(currentMember);
+
+        // 현재 사용자의 선호 카테고리 목록을 카테고리 이름으로 매핑하여 반환
+        List<String> favoriteCategoryNames = userFavoriteCategories.stream()
+                // 각 UserFavoriteCategory 객체에서 Category 객체를 추출
+                .map(UserFavoriteCategory::getCategory)
+                // 각 Category 객체에서 카테고리 이름 추출
+                .map(Category::getName)
+                .toList();
+
+        return ResponseEntity.ok(favoriteCategoryNames.toString());
+    }
+
+    // 선호 카테고리 편집
+    @PostMapping("mypage/editFavoriteCategory")
+    public ResponseEntity<String> editFavoriteCategory(
+            @RequestParam("categoryIds")List<Long> categoryIds) throws IOException {
+        // 사용자 인증
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Optional<Member> member = memberRepository.findByUsername(currentUsername);
+
+        // 권한 없음
+        if (member.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        // 선호 카테고리 리스트를 기반으로 Stream 생성
+        // categoryIds는 사용자가 선택한 카테고리 ID 목록
+        if (!categoryIds.isEmpty()) {
+            List<UserFavoriteCategory> userFavoriteCategories = categoryIds.stream()
+                    // 각 categoryId를 입력으로 받아서 UserFavoriteCategory 객체를 생성하는 람다 표현식
+                    .map(categoryId -> {
+                        // 각 UserFavoriteCategory 객체에는 현재 member, 선택한 category에 대응하는 Category 객체가 설정됨
+                        UserFavoriteCategory userFavoriteCategory = new UserFavoriteCategory();
+                        userFavoriteCategory.setMember(member.get());
+                        userFavoriteCategory.setCategory(categoryRepository.findById(categoryId).orElseThrow());
+                        userFavoriteCategory.setId(new UserFavoriteCategoryId(member.get().getId(), categoryId));
+                        return userFavoriteCategory;
+                    })
+                    .toList();
+
+            userFavoriteCategoryRepository.saveAll(userFavoriteCategories);
+        }
+        return ResponseEntity.ok("선호 카테고리가 저장되었습니다.");
     }
 }

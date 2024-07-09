@@ -3,8 +3,10 @@ package com.sw.journal.journalcrawlerpublisher.service;
 import com.sw.journal.journalcrawlerpublisher.constant.Role;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.domain.SpringUser;
+import com.sw.journal.journalcrawlerpublisher.domain.UserFavoriteCategory;
 import com.sw.journal.journalcrawlerpublisher.domain.VerificationCode;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.VerificationCodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,10 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 
 @Service
@@ -27,6 +26,7 @@ import java.util.Random;
 public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final VerificationCodeRepository verificationCodeRepository;
+    private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
     private final PasswordEncoder passwordEncoder;
 
     // 로그인 기능 구현
@@ -109,5 +109,26 @@ public class MemberService implements UserDetailsService {
     // 난수 삭제 메서드
     public void deleteCode(String email) {
         verificationCodeRepository.deleteByEmail(email);
+    }
+
+    // 선호 카테고리 저장 메서드
+    public String saveFavoriteCategory(String email) {
+        String code = String.format("%06d", new Random().nextInt(999999));
+        VerificationCode verificationCode = new VerificationCode();
+        verificationCode.setEmail(email);
+        verificationCode.setCode(code);
+        verificationCode.setCreatedAt(LocalDateTime.now());
+        verificationCodeRepository.save(verificationCode);
+        return code;
+    }
+
+    // 유저 id로 유저 선호 카테고리 검색
+    public List<UserFavoriteCategory> findByMember(Member member) {
+        return userFavoriteCategoryRepository.findByIdMemberId(member.getId());
+    }
+
+    // 유저 선호 카테고리 저장
+    public List<UserFavoriteCategory> saveAll(List<UserFavoriteCategory> userFavoriteCategories) {
+        return userFavoriteCategoryRepository.saveAll(userFavoriteCategories);
     }
 }

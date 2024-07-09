@@ -18,6 +18,13 @@ public class UserFavoriteCategoryId implements Serializable {
     @Column(name = "category_id")
     private Long categoryId;
 
+    public UserFavoriteCategoryId() {}
+
+    public UserFavoriteCategoryId(Long memberId, Long categoryId) {
+        this.memberId = memberId;
+        this.categoryId = categoryId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
