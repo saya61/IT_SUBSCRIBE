@@ -72,8 +72,8 @@ public class MemberRestController {
 
     // 이메일 인증 코드 검증
     @PostMapping("/verifyCode")
-    // @RequestParam -> URL 파라미터인 code 값을 받음
-    // @RequestBody -> JSON 형식으로 보낸 데이터를 VerificationRequest 객체로 매핑하여 받음
+    // @RequestParam -> URL 파라미터로 code 값을 받음
+    // @RequestBody -> JSON 형식으로 BODY에서 받음
     public ResponseEntity<String> verifyCode(
             @RequestParam("code") String code,
             @RequestBody VerificationRequest request) throws IOException {
@@ -112,6 +112,7 @@ public class MemberRestController {
         return "login_form";
     }
 
+    // members/login을 통해 로그인된 상태여야지 GET 요청 테스트가 성공했음
     // 마이페이지 조회
     @GetMapping("/mypage")
     public ResponseEntity<MemberDTO> mypage() {

@@ -7,9 +7,10 @@ import lombok.Setter;
 @Getter @Setter
 @RequiredArgsConstructor
 public class VerificationRequest { // DTO 클래스 역할을 하는 클래스
-    private final String username;
-    private final String nickname;
-    private final String email;
-    private final String code;
-    private final String password;
+    private String username;
+    private String nickname;
+    private String email;
+    private String code;
+    private String password;
+
 }

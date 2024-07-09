@@ -1,30 +1,30 @@
-//package com.sw.journal.journalcrawlerpublisher.controller;
-//
-//import com.sw.journal.journalcrawlerpublisher.domain.*;
-//import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
-//import com.sw.journal.journalcrawlerpublisher.service.MemberService;
-//import jakarta.validation.Valid;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.security.core.Authentication;
-//import org.springframework.security.core.context.SecurityContextHolder;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.stereotype.Controller;
-//import org.springframework.ui.Model;
-//import org.springframework.validation.BindingResult;
-//import org.springframework.web.bind.annotation.GetMapping;
-//import org.springframework.web.bind.annotation.PostMapping;
-//import org.springframework.web.bind.annotation.RequestMapping;
-//
-//import java.util.Optional;
-//
-//@Controller
-//@RequiredArgsConstructor
-//@RequestMapping("/members")
-//public class MemberViewController {
-//    private final MemberService memberService;
-//    private final PasswordEncoder passwordEncoder;
-//    private final MemberRepository memberRepository;
-//
+package com.sw.journal.journalcrawlerpublisher.controller;
+
+import com.sw.journal.journalcrawlerpublisher.domain.*;
+import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
+import com.sw.journal.journalcrawlerpublisher.service.MemberService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.Optional;
+
+@Controller
+@RequiredArgsConstructor
+@RequestMapping("/members")
+public class MemberViewController {
+    private final MemberService memberService;
+    private final PasswordEncoder passwordEncoder;
+    private final MemberRepository memberRepository;
+
 //    @GetMapping("/signup")
 //    public String signup(MemberDTO memberCreateForm) {
 //        return "signup_form";
@@ -77,38 +77,38 @@
 //            model.addAttribute("memberCreateForm", memberCreateForm);
 //            return "signup_form";
 //        }
-//
-////        // 백엔드 검증
-////        try {
-////            memberService.create(
-////                    memberCreateForm.getUsername(), memberCreateForm.getNickname(),
-////                    memberCreateForm.getEmail(), memberCreateForm.getPassword()
-////            );
-////        } catch (IllegalArgumentException e) {
-////            bindingResult.reject(
-////                    "signupFailed",
-////                    "이미 가입된 계정입니다."
-////            );
-////            model.addAttribute("memberCreateForm", memberCreateForm);
-////            return "signup_form";
-////        } catch (Exception e) {
-////            bindingResult.reject(
-////                    "signupFailed",
-////                    e.getMessage()
-////            );
-////            model.addAttribute("memberCreateForm", memberCreateForm);
-////            return "signup_form";
-////        }
-//
+
+//        // 백엔드 검증
+//        try {
+//            memberService.create(
+//                    memberCreateForm.getUsername(), memberCreateForm.getNickname(),
+//                    memberCreateForm.getEmail(), memberCreateForm.getPassword()
+//            );
+//        } catch (IllegalArgumentException e) {
+//            bindingResult.reject(
+//                    "signupFailed",
+//                    "이미 가입된 계정입니다."
+//            );
+//            model.addAttribute("memberCreateForm", memberCreateForm);
+//            return "signup_form";
+//        } catch (Exception e) {
+//            bindingResult.reject(
+//                    "signupFailed",
+//                    e.getMessage()
+//            );
+//            model.addAttribute("memberCreateForm", memberCreateForm);
+//            return "signup_form";
+//        }
+
 //        // 3. 회원 가입 성공
 //        return "redirect:/";
 //    }
-//
-//    @GetMapping("/login")
-//    public String login() {
-//        return "login_form";
-//    }
-//
+
+    @GetMapping("/login")
+    public String login() {
+        return "login_form";
+    }
+
 //    @GetMapping("/mypage")
 //    public String mypage(Model model) {
 //        // 사용자 인증
@@ -236,6 +236,6 @@
 //        memberRepository.save(currentMember);
 //        return "redirect:/";
 //    }
-//
-//
-//}
+
+
+}

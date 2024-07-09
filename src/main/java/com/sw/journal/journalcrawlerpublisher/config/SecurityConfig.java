@@ -15,32 +15,27 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(
-                (authorizeHttpRequests) ->
-                    authorizeHttpRequests
-                        .requestMatchers(
-                            new AntPathRequestMatcher("/api/**", HttpMethod.POST.name())
-                        ).permitAll()
-            )
-            .formLogin(
-                    (formLogin) ->
-                            formLogin
-                                    .loginPage("/members/login")
-                                    .defaultSuccessUrl("/")
-            )
-            .logout(
-                    (logout) ->
-                            logout
-                                    .logoutRequestMatcher(new AntPathRequestMatcher("/members/logout"))
-                                    .logoutSuccessUrl("/")
-                                    .invalidateHttpSession(true)
-            )
-        ;
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authorizeHttpRequests ->
+                        authorizeHttpRequests
+                                .requestMatchers("/api/members/mypage").authenticated()  // 인증 필요
+                                .requestMatchers("/members/login", "/members/register").permitAll()  // 로그인, 회원가입 페이지 허용
+                                .anyRequest().permitAll()
+                )
+                .formLogin(formLogin ->
+                        formLogin
+                                .loginPage("/members/login")
+                                .defaultSuccessUrl("/")
+                )
+                .logout(logout ->
+                        logout
+                                .logoutRequestMatcher(new AntPathRequestMatcher("/members/logout"))
+                                .logoutSuccessUrl("/")
+                                .invalidateHttpSession(true)
+                );
         return http.build();
     }
 
-    // passwordEncoder 빈 등록
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
