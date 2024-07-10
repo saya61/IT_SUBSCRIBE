@@ -123,8 +123,12 @@ public class MemberService implements UserDetailsService {
     }
 
     // 유저 id로 유저 선호 카테고리 검색
+//    public List<UserFavoriteCategory> findByMember(Member member) {
+//        return userFavoriteCategoryRepository.findByMember(member);
+//    }
+
     public List<UserFavoriteCategory> findByMember(Member member) {
-        return userFavoriteCategoryRepository.findByIdMemberId(member.getId());
+        return userFavoriteCategoryRepository.findByMemberId(member.getId());
     }
 
     // 유저 선호 카테고리 저장
