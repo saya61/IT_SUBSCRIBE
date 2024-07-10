@@ -25,7 +25,7 @@ public class OurArticle {
     @Column(nullable = false)
     private LocalDateTime postDate;
 
-    @OneToOne  //@OneToOne 이 맞는거 같다
+    @ManyToOne  //@OneToOne 이 맞는거 같다
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
