@@ -113,7 +113,7 @@ public class MemberService implements UserDetailsService {
 
     // 유저 id로 유저 선호 카테고리 검색
     public List<UserFavoriteCategory> findByMemberId(Member member) {
-        return userFavoriteCategoryRepository.findByMemberId(member.getId());
+        return userFavoriteCategoryRepository.findByMember(member);
     }
 
     // 유저 선호 카테고리 저장

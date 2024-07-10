@@ -7,6 +7,7 @@ import com.sw.journal.journalcrawlerpublisher.repository.ProfileImageRepostiory;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import com.sw.journal.journalcrawlerpublisher.service.ProfileImageService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class MemberRestController {
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
     private final ProfileImageService profileImageService;
-    private final ProfileImageRepostiory profileImageRepostiory;
+    private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
 
     // 아이디  중복 확인
     @PostMapping("/checkId")
@@ -261,6 +262,7 @@ public class MemberRestController {
 
     // 선호 카테고리 편집
     @PostMapping("mypage/editFavoriteCategory")
+    @Transactional
     public ResponseEntity<String> editFavoriteCategory(
             @RequestParam("categoryIds")List<Long> categoryIds) throws IOException {
         // 사용자 인증
@@ -272,7 +274,12 @@ public class MemberRestController {
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+        Member currentMember = member.get();
 
+        // 기존 선호 카테고리 리스트 삭제
+        userFavoriteCategoryRepository.deleteByMember(currentMember);
+
+        // 새로운 선호 카테고리 리스트 반영
         // 선호 카테고리 리스트를 기반으로 Stream 생성
         // categoryIds는 사용자가 선택한 카테고리 ID 목록
         if (!categoryIds.isEmpty()) {
