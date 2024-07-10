@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
+import java.util.Random;
+
 @SpringBootTest
 class CioCrawlerTest {
     @Autowired
@@ -119,9 +121,10 @@ class CioCrawlerTest {
 
             // 6. 기사 랭크(조회수) 저장
             if(articleRankRepository.findByArticle(savedArticle).isEmpty()) {
+                Random random = new Random();
                 ArticleRank articleRank = new ArticleRank();
                 articleRank.setArticle(savedArticle);
-                articleRank.setCount(0L);
+                articleRank.setCount((long) random.nextInt(100));
                 articleRank.setIsActive(true);
                 try {
                     articleRankRepository.save(articleRank);
@@ -144,7 +147,7 @@ class CioCrawlerTest {
     @Test
     public void crawlingCio(){
         String URL = "https://www.ciokorea.com/rss/feed/index.php";
-
+        String compareURL = "https://www.ciokorea.com/news/";  // 문자 0~29
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime today = LocalDateTime.parse(LocalDateTime.now().format(formatter), formatter);
         LocalDateTime yesterday = today.minusDays(1);
@@ -162,7 +165,11 @@ class CioCrawlerTest {
                 // 시간 비교
                 if(articleTime.isBefore(today) && articleTime.isAfter(yesterday)) {
                     // 크롤링 가능한 기간
-                    boolean saved = crawlArticles(link);    // 저장 유무를 전달받음 이후 count로 중복 기사가 몇번 발생했는지 저장하여 insite를 만듬 로그 파일 만들기 logforj
+                    // rss에서 크롤링을 수행할 때 원하지 않는 url을 수행하지 않기 위함
+                    // 저장 유무를 전달받음 이후 count로 중복 기사가 몇번 발생했는지 저장하여 insite를 만듬 로그 파일 만들기 logforj
+                    if(compareURL.regionMatches(0, link, 0, 30)) {
+                        boolean saved = crawlArticles(link);
+                    }
                 }
                 else {
                     System.out.println("날짜가 지났습니다.");

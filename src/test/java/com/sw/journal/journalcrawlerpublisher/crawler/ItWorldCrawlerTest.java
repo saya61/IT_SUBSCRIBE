@@ -2,16 +2,16 @@ package com.sw.journal.journalcrawlerpublisher.crawler;
 
 import com.sw.journal.journalcrawlerpublisher.domain.*;
 import com.sw.journal.journalcrawlerpublisher.repository.*;
-import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -19,9 +19,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.Random;
 
-@Service
-@RequiredArgsConstructor
-public class CioCrawler {
+
+@SpringBootTest
+class ItWorldCrawlerTest {
     @Autowired
     private OurArticleRepository ourArticleRepository;
     @Autowired
@@ -39,13 +39,13 @@ public class CioCrawler {
         Connection conn = Jsoup.connect(articleUrl);
         try {
             Document doc = conn.get();
-            Elements elem = doc.select(".row"); //set 자료형으로 관리해도 됨
+            Elements elem = doc.select(".row>.section-content"); //set 자료형으로 관리해도 됨
             // 카테고리 1개
-            String articleCategory = elem.select(".pb-5>p.font-color-primary-2>a>small.font-color-primary-2").first().text();
+            String articleCategory = elem.select(".font-color-primary-1").first().text();
             // 기사 제목
-            String articleTitle = elem.select("#node_title").text();
+            String articleTitle = elem.select(".node-title").text();
             // 기사 이미지
-            String imgUrl = elem.select(".node-body img").attr("src");
+            //String imgUrl = elem.select(".node-body img").attr("src");
             // 기사 내용
             String articleContent = elem.select(".node-body").text();
 
@@ -93,15 +93,21 @@ public class CioCrawler {
 
             // 4. 이미지 저장
             // 이미지가 없는 기사도 있음
-            if(!imgUrl.isEmpty()) {
-                Image image = new Image();
-                image.setImgUrl("https://www.ciokorea.com" + imgUrl);
-                image.setOurArticle(savedArticle);
-                imageRepository.save(image);
+            for(Element e : doc.select(".node-body .image")) {
+                String imgUrl = e.select("img").attr("src");
+                if(!imgUrl.isEmpty()) {
+                    Image image = new Image();
+                    image.setImgUrl("https://www.itworld.co.kr" + imgUrl);
+                    image.setOurArticle(savedArticle);
+                    imageRepository.save(image);
+                }
+                else {
+                    break;
+                }
             }
 
             // 5-1. 태그 각각 저장
-            for(Element e : doc.select(".py-4>.me-2>a")) {
+            for(Element e : doc.select(".row>.section-content>.py-5>.ms-2>a")) {
                 String tagName = e.select("span").text();
                 if(tagRepository.findByName(tagName).isEmpty()) {
                     Tag tag = new Tag();
@@ -144,10 +150,12 @@ public class CioCrawler {
         }
     }
 
-    @Scheduled(cron = "0 0 4 * * *")
-    public void crawlingCio(){
-        String URL = "https://www.ciokorea.com/rss/feed/index.php";
-        String compareURL = "https://www.ciokorea.com/news/";  // 문자 0~29
+    //@Scheduled(cron = "0 0 4 * * *")
+    @Test
+    public void crawlingItWorld(){
+        String URL = "https://www.itworld.co.kr/rss/feed/index.php";
+        String compareURL = "https://www.itworld.co.kr/news/";  // 문자 0~30
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime today = LocalDateTime.parse(LocalDateTime.now().format(formatter), formatter);
         LocalDateTime yesterday = today.minusDays(1);
@@ -164,15 +172,15 @@ public class CioCrawler {
                 LocalDateTime articleTime = LocalDateTime.parse(pubDate, formatter);
                 // 시간 비교
                 if(articleTime.isBefore(today) && articleTime.isAfter(yesterday)) {
-                    // 크롤링 가능한 기간
-                    // rss에서 크롤링을 수행할 때 원하지 않는 url을 수행하지 않기 위함
+                    // 크롤링 가능한 기간일 경우 실행됨
                     // 저장 유무를 전달받음 이후 count로 중복 기사가 몇번 발생했는지 저장하여 insite를 만듬 로그 파일 만들기 logforj
-                    if(compareURL.regionMatches(0, link, 0, 30)) {
+                    // rss에서 크롤링을 수행할 때 원하지 않는 url을 수행하지 않기 위함
+                    if(compareURL.regionMatches(0, link, 0, 31)) {
                         boolean saved = crawlArticles(link);
                     }
                 }
                 else {
-                    System.out.println("날짜가 지났습니다.");
+                    //System.out.println("날짜가 지났습니다.");
                     break;
                 }
             }
