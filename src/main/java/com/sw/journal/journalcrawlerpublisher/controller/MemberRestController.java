@@ -240,7 +240,7 @@ public class MemberRestController {
 
         // 현재 사용자 id로 선호 카테고리 검색
         Member currentMember = member.get();
-        List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMember(currentMember);
+        List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMemberId(currentMember);
 
         // 현재 사용자의 선호 카테고리 목록을 카테고리 이름으로 매핑하여 반환
         List<String> favoriteCategoryNames = userFavoriteCategories.stream()
@@ -282,7 +282,7 @@ public class MemberRestController {
                     })
                     .toList();
 
-            userFavoriteCategoryRepository.saveAll(userFavoriteCategories);
+            memberService.saveAll(userFavoriteCategories);
         }
         return ResponseEntity.ok("선호 카테고리가 저장되었습니다.");
     }

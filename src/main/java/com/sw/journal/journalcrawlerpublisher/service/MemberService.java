@@ -111,24 +111,13 @@ public class MemberService implements UserDetailsService {
         verificationCodeRepository.deleteByEmail(email);
     }
 
-    // 선호 카테고리 저장 메서드
-    public String saveFavoriteCategory(String email) {
-        String code = String.format("%06d", new Random().nextInt(999999));
-        VerificationCode verificationCode = new VerificationCode();
-        verificationCode.setEmail(email);
-        verificationCode.setCode(code);
-        verificationCode.setCreatedAt(LocalDateTime.now());
-        verificationCodeRepository.save(verificationCode);
-        return code;
-    }
-
     // 유저 id로 유저 선호 카테고리 검색
-    public List<UserFavoriteCategory> findByMember(Member member) {
-        return userFavoriteCategoryRepository.findByIdMemberId(member.getId());
+    public List<UserFavoriteCategory> findByMemberId(Member member) {
+        return userFavoriteCategoryRepository.findByMemberId(member.getId());
     }
 
     // 유저 선호 카테고리 저장
-    public List<UserFavoriteCategory> saveAll(List<UserFavoriteCategory> userFavoriteCategories) {
-        return userFavoriteCategoryRepository.saveAll(userFavoriteCategories);
+    public void saveAll(List<UserFavoriteCategory> userFavoriteCategories) {
+        userFavoriteCategoryRepository.saveAll(userFavoriteCategories);
     }
 }
