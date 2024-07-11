@@ -12,6 +12,6 @@ import java.util.List;
 public interface UserFavoriteCategoryRepository extends JpaRepository<UserFavoriteCategory, UserFavoriteCategoryId> {
     // 입력된 회원의 선호 카테고리를 검색
     List<UserFavoriteCategory> findByMember(Member member);
-    List<UserFavoriteCategory> findByMemberId(Long memberId);
-
+    // 입력된 회원의 선호 카테고리를 삭제
+    void deleteByMember(Member member);
 }

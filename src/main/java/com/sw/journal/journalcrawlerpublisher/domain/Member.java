@@ -34,6 +34,10 @@ public class Member {
     @Column(nullable = false)
     private Role role;
 
+    @OneToOne
+    @JoinColumn(name = "profileImage_id")
+    private ProfileImage profileImage;
+
     @Override
     public String toString() {
         return "Member{" +

@@ -3,8 +3,11 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 import com.sw.journal.journalcrawlerpublisher.domain.*;
 import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.ProfileImageRepostiory;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
+import com.sw.journal.journalcrawlerpublisher.service.ProfileImageService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +15,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,8 +32,9 @@ public class MemberRestController {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
-    private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
     private final CategoryRepository categoryRepository;
+    private final ProfileImageService profileImageService;
+    private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
 
     // 아이디  중복 확인
     @PostMapping("/checkId")
@@ -240,7 +247,7 @@ public class MemberRestController {
 
         // 현재 사용자 id로 선호 카테고리 검색
         Member currentMember = member.get();
-        List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMember(currentMember);
+        List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMemberId(currentMember);
 
         // 현재 사용자의 선호 카테고리 목록을 카테고리 이름으로 매핑하여 반환
         List<String> favoriteCategoryNames = userFavoriteCategories.stream()
@@ -255,6 +262,7 @@ public class MemberRestController {
 
     // 선호 카테고리 편집
     @PostMapping("mypage/editFavoriteCategory")
+    @Transactional
     public ResponseEntity<String> editFavoriteCategory(
             @RequestParam("categoryIds")List<Long> categoryIds) throws IOException {
         // 사용자 인증
@@ -266,7 +274,12 @@ public class MemberRestController {
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+        Member currentMember = member.get();
 
+        // 기존 선호 카테고리 리스트 삭제
+        userFavoriteCategoryRepository.deleteByMember(currentMember);
+
+        // 새로운 선호 카테고리 리스트 반영
         // 선호 카테고리 리스트를 기반으로 Stream 생성
         // categoryIds는 사용자가 선택한 카테고리 ID 목록
         if (!categoryIds.isEmpty()) {
@@ -282,8 +295,26 @@ public class MemberRestController {
                     })
                     .toList();
 
-            userFavoriteCategoryRepository.saveAll(userFavoriteCategories);
+            memberService.saveAll(userFavoriteCategories);
         }
         return ResponseEntity.ok("선호 카테고리가 저장되었습니다.");
+    }
+
+    // 프로필 사진 변경
+    @PostMapping("/mypage/updateProfileImage")
+    public ResponseEntity<?> updateProfileImage(@RequestParam("file") MultipartFile file) throws IOException {
+        // 사용자 인증
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Optional<Member> member = memberRepository.findByUsername(currentUsername);
+
+        // 권한 없음
+        if (member.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        Member currentMember = member.get();
+
+        // 프로필 사진 변경
+        return ResponseEntity.ok(profileImageService.updateProfileImage(currentMember, file));
     }
 }
