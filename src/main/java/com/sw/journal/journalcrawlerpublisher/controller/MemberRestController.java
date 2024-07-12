@@ -1,9 +1,10 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sw.journal.journalcrawlerpublisher.domain.*;
 import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
-import com.sw.journal.journalcrawlerpublisher.repository.ProfileImageRepostiory;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import com.sw.journal.journalcrawlerpublisher.service.ProfileImageService;
@@ -17,13 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,82 +31,81 @@ public class MemberRestController {
     private final CategoryRepository categoryRepository;
     private final ProfileImageService profileImageService;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
+    private final ObjectMapper jacksonObjectMapper;
 
-    // 아이디  중복 확인
-    @PostMapping("/checkId")
-    public ResponseEntity<String> validateDuplicateId(
-            @RequestParam("username")String username) throws IOException {
+    // 회원가입 할 때 아이디, 이메일, 닉네임 중복 확인
+    @PostMapping("/check-duplicate")
+    public ResponseEntity<?> checkDuplicates(
+            @RequestBody DuplicationCheckDTO request) throws IOException {
+        // 응답 메시지 객체
+        DuplicationCheckDTO response = new DuplicationCheckDTO();
 
-        if(memberService.existsByUsername(username)) {
-            return ResponseEntity.badRequest().body("이미 존재하는 아이디입니다.");
+        // 아이디 중복 확인
+        if (request.getUsername() != null) {
+            if (memberService.existsByUsername(request.getUsername())) {
+                response.setUsername("이미 존재하는 아이디입니다.");
+            } else {
+                response.setUsername("사용할 수 있는 아이디입니다.");
+            }
         }
 
-        return ResponseEntity.ok("사용할 수 있는 아이디입니다.");
-    }
-
-    // 닉네임  중복 확인
-    @PostMapping("/checkNickname")
-    public ResponseEntity<String> validateDuplicateNickname(
-            @RequestParam("nickname")String nickname) throws IOException {
-
-            if(memberService.existsByNickname(nickname)) {
-            return ResponseEntity.badRequest().body("이미 존재하는 닉네임입니다.");
+        // 이메일 중복 확인
+        if (request.getEmail() != null) {
+            if (memberService.existsByEmail(request.getEmail())) {
+                response.setEmail("이미 존재하는 이메일입니다.");
+            } else {
+                response.setEmail("사용할 수 있는 이메일입니다.");
             }
+        }
 
-        return ResponseEntity.ok("사용할 수 있는 닉네임입니다.");
+        // 닉네임 중복 확인
+        if (request.getNickname() != null) {
+            if (memberService.existsByNickname(request.getNickname())) {
+                response.setNickname("이미 존재하는 닉네임입니다.");
+            } else {
+                response.setNickname("사용할 수 있는 닉네임입니다.");
+            }
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     // 이메일 인증 코드 발송
-    @PostMapping("/sendCode")
-    public ResponseEntity<VerificationResponse> sendCode(
-            @RequestParam("email")String email) throws IOException {
-        // 응답 메세지
-        String res;
-
-        // 이메일 중복 확인
-        if(memberService.existsByEmail(email)) {
-            res = "이미 가입한 이메일입니다.";
-            return ResponseEntity.badRequest().body(
-                new VerificationResponse(null,null, res)
-            );
-        }
+    @PostMapping("/send-code")
+    public ResponseEntity<?> sendCode(
+            @RequestBody String emailRequest) throws IOException {
+        // JSON 파싱
+        JsonNode jsonNode = jacksonObjectMapper.readTree(emailRequest);
+        String email = jsonNode.get("email").asText();
 
         // 인증번호 발송
-        String code = memberService.sendVerificationCode(email);
-        res = "인증번호가 발송되었습니다.";
-        return ResponseEntity.ok(
-            // email, code 를 포함하는 json 변환 가능한 객체 타입을 body 로 반환
-            new VerificationResponse(email, code, res)
-        );
+        memberService.sendVerificationCode(email);
+        return ResponseEntity.ok("인증번호가 발송되었습니다.");
     }
 
     // 이메일 인증 코드 검증
-    @PostMapping("/verifyCode")
-    // @RequestParam -> URL 파라미터로 code 값을 받음
-    // @RequestBody -> JSON 형식으로 BODY에서 받음
+    @PostMapping("/verify-code")
     public ResponseEntity<String> verifyCode(
-            @RequestParam("code") String code,
-            @RequestBody VerificationRequest request) throws IOException {
+            // 사용자가 입력한 email, 인증번호를 body로 받음
+            @RequestBody VerificationDTO request) throws IOException {
 
         // 인증 번호와 사용자 입력 코드 비교
-        if (!memberService.verifyCode(request.getEmail(),code)) {
+        if (!memberService.verifyCode(request.getEmail(), request.getCode())) {
             return ResponseEntity.badRequest().body("인증코드가 일치하지 않습니다.");
         }
 
-        // 인증 성공 후 코드 삭제
+        // 인증 성공 후 DB에서 인증번호 삭제
         memberService.deleteCode(request.getEmail());
         return ResponseEntity.ok("인증이 완료되었습니다.");
     }
 
-    // 비밀번호 중복 확인
+    // 비밀번호 설정 후 회원가입
     @PostMapping("/register")
     public ResponseEntity<String> register(
-            @RequestParam("password") String password,
-            @RequestParam("password2") String password2,
-            @RequestBody VerificationRequest request) throws IOException {
+            @RequestBody MemberDTO request) throws IOException {
 
         // 비밀번호, 비밀번호 재입력값 일치 확인
-        if(!password.equals(password2)) {
+        if(!request.getPassword().equals(request.getPassword2())) {
             return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
         }
 
@@ -129,7 +124,7 @@ public class MemberRestController {
     // members/login을 통해 로그인된 상태여야지 GET 요청 테스트가 성공했음
     // 마이페이지 조회
     @GetMapping("/mypage")
-    public ResponseEntity<MemberDTO> mypage() {
+    public ResponseEntity<?> mypage() {
         // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -142,12 +137,12 @@ public class MemberRestController {
 
         // 현재 사용자 정보 반환
         Member currentMember = member.get();
-        return ResponseEntity.ok(new MemberDTO(currentMember));
+        return ResponseEntity.ok(new MypageDTO(currentMember));
     }
 
     // 닉네임 변경
-    @PostMapping("/mypage/updateNickname")
-    public ResponseEntity<String> updateNickname(@RequestParam("nickname") String nickname) throws IOException{
+    @PostMapping("/mypage/update-nickname")
+    public ResponseEntity<String> updateNickname(@RequestBody String nicknameRequest) throws IOException{
         // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -158,6 +153,10 @@ public class MemberRestController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
         Member currentMember = member.get();
+
+        // JSON 파싱
+        JsonNode jsonNode = jacksonObjectMapper.readTree(nicknameRequest);
+        String nickname = jsonNode.get("nickname").asText();
 
         // 닉네임 중복 확인
         if (memberService.existsByNickname(nickname)) {
@@ -165,7 +164,7 @@ public class MemberRestController {
         }
 
         // 닉네임 변경
-        if (!nickname.isEmpty()) {
+        if (!nicknameRequest.isEmpty()) {
             currentMember.setNickname(nickname);
         }
         memberRepository.save(currentMember);
@@ -173,8 +172,8 @@ public class MemberRestController {
     }
 
     // 이메일 변경
-    @PostMapping("/mypage/updateEmail")
-    public ResponseEntity<String> updateEmail(@RequestParam("email") String email) throws IOException {
+    @PostMapping("/mypage/update-email")
+    public ResponseEntity<String> updateEmail(@RequestBody String emailRequest) throws IOException {
         // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -185,26 +184,30 @@ public class MemberRestController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
         Member currentMember = member.get();
+
+        // JSON 파싱
+        JsonNode jsonNode = jacksonObjectMapper.readTree(emailRequest);
+        String email = jsonNode.get("email").asText();
 
         // 이메일 중복 검사
         if (memberService.existsByEmail(email)) {
             return ResponseEntity.badRequest().body("이미 가입된 이메일입니다.");
         }
 
-        // 3. 이메일 변경
-        if (!email.isEmpty()) {
+        // 이메일 변경
+        if (!emailRequest.isEmpty()) {
             currentMember.setEmail(email);
         }
         memberRepository.save(currentMember);
         return ResponseEntity.ok("이메일이 성공적으로 변경되었습니다.");
     }
 
-    // 비밀번호 변경 (currentPw는 현재 사용자 비번, newPw는 변경할 비번, confirmPw는 변경할 비번 재확인)
-    @PostMapping("/mypage/updatePassword")
-    public ResponseEntity<String> updatePassword(
-            @RequestParam("currentPw") String currentPw,
-            @RequestParam("newPw") String newPw,
-            @RequestParam("confirmPw") String confirmPw) throws IOException {
+
+    // 비밀번호 재설정
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @RequestParam("action") String action,
+            @RequestBody ChangePwDTO request) {
         // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -215,25 +218,29 @@ public class MemberRestController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
         Member currentMember = member.get();
-        String currentPassword = currentMember.getPassword();
 
-        if (!newPw.equals(confirmPw)) {
-            return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
+        // action을 통해 id 표시 또는 비밀번호 변경 중 선택
+        switch (action) {
+            // show_id일때는 body 값 {}로 보내야함
+            case "show_id" :
+                return ResponseEntity.ok(currentUsername);
+            case "change_password" :
+                if (!request.getNewPw().equals(request.getNewPwConfirm())) {
+                    return ResponseEntity.badRequest().body("비밀번호가 맞지 않습니다.");
+                }
+                // 비밀번호 변경
+                if (!request.getNewPw().isEmpty()) {
+                    currentMember.setPassword(passwordEncoder.encode(request.getNewPw()));
+                }
+                memberRepository.save(currentMember);
+                return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+            default:
+                return ResponseEntity.badRequest().body("잘못된 요청입니다.");
         }
-        if (!passwordEncoder.matches(currentPw, currentPassword)) {
-            return ResponseEntity.badRequest().body("잘못된 비밀번호입니다.");
-        }
-
-        // 비밀번호 변경
-        if (!newPw.isEmpty()) {
-            currentMember.setPassword(passwordEncoder.encode(newPw));
-        }
-        memberRepository.save(currentMember);
-        return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
     }
 
     // 선호 카테고리 목록 출력
-    @GetMapping("mypage/getFavoriteCategory")
+    @GetMapping("mypage/get-favorite-category")
     public ResponseEntity<String> getFavoriteCategory() throws IOException {
         // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -261,10 +268,11 @@ public class MemberRestController {
     }
 
     // 선호 카테고리 편집
-    @PostMapping("mypage/editFavoriteCategory")
+    @PostMapping("mypage/edit-favorite-category")
     @Transactional
     public ResponseEntity<String> editFavoriteCategory(
-            @RequestParam("categoryIds")List<Long> categoryIds) throws IOException {
+            // body에 [1, 2] 이런 식으로 리스트로 보냄
+            @RequestBody List<Long> categoryIds) throws IOException {
         // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -301,8 +309,10 @@ public class MemberRestController {
     }
 
     // 프로필 사진 변경
-    @PostMapping("/mypage/updateProfileImage")
-    public ResponseEntity<?> updateProfileImage(@RequestParam("file") MultipartFile file) throws IOException {
+    @PostMapping("/mypage/update-profile-image")
+    public ResponseEntity<?> updateProfileImage(
+            // MultipartFile은 RequestBody로 전해주면 안된다고 합니다..
+            @RequestParam("file") MultipartFile file) throws IOException {
         // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();

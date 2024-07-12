@@ -7,18 +7,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class MemberDTO {
+// MemberDTO에서 비밀번호만 제외한 DTO
+public class MypageDTO {
     private String username;
     private String nickname;
     private String email;
-    private String password;
-    private String password2;
+    private ProfileImage profileImageId;
 
-    public MemberDTO(Member member) {
+    public MypageDTO(Member member) {
         this.username = member.getUsername();
         this.nickname = member.getNickname();
         this.email = member.getEmail();
-        this.password = member.getPassword();
-        this.password2 = member.getPassword();
+        this.profileImageId = member.getProfileImage();
     }
 }
