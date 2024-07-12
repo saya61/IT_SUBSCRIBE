@@ -87,12 +87,15 @@ public class MemberService implements UserDetailsService {
 
     // 난수 생성 메서드
     public String sendVerificationCode(String email) {
-        String code = String.format("%06d", new Random().nextInt(999999));
+//        String code = String.format("%06d", new Random().nextInt(999999));
+        // 일단 난수 랜덤 생성하지 않고 123456으로 통일
+        String code = "123456";
         VerificationCode verificationCode = new VerificationCode();
         verificationCode.setEmail(email);
         verificationCode.setCode(code);
         verificationCode.setCreatedAt(LocalDateTime.now());
         verificationCodeRepository.save(verificationCode);
+
         return code;
     }
 
