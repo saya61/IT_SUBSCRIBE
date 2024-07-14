@@ -42,6 +42,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     // jsoup
     implementation 'org.jsoup:jsoup:1.17.2'
+    // Redis에 필요한 라이브러리
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis:3.3.1'
+    // https://mvnrepository.com/artifact/io.lettuce/lettuce-core
+    implementation 'io.lettuce:lettuce-core:6.4.0.M1'
 }
 
 tasks.named('test') {

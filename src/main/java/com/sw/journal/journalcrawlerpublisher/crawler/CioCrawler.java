@@ -125,7 +125,7 @@ public class CioCrawler {
                 Random random = new Random();
                 ArticleRank articleRank = new ArticleRank();
                 articleRank.setArticle(savedArticle);
-                articleRank.setCount((long) random.nextInt(100));
+                articleRank.setCount((long) random.nextInt(100));   // 조회수에 관한 데이터를 랜덤으로 넣음 (추후 삭제)
                 articleRank.setIsActive(true);
                 try {
                     articleRankRepository.save(articleRank);
