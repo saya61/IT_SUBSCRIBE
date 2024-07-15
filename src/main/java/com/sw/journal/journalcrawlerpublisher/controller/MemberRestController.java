@@ -85,9 +85,10 @@ public class MemberRestController {
 
     // 이메일 인증 코드 검증
     @PostMapping("/verify-code")
-    public ResponseEntity<String> verifyCode(
+    public ResponseEntity<?> verifyCode(
             // 사용자가 입력한 email, 인증번호를 body로 받음
             @RequestBody VerificationDTO request) throws IOException {
+        Map<String, String> response = new HashMap<>();
 
         // 인증 번호와 사용자 입력 코드 비교
         if (!memberService.verifyCode(request.getEmail(), request.getCode())) {
@@ -96,7 +97,16 @@ public class MemberRestController {
 
         // 인증 성공 후 DB에서 인증번호 삭제
         memberService.deleteCode(request.getEmail());
-        return ResponseEntity.ok("인증이 완료되었습니다.");
+
+        // 사용자가 입력한 email을 통해 사용자 id를 찾음
+        Optional<Member> member = memberRepository.findByEmail(request.getEmail());
+        if (member.isEmpty()) {
+            return ResponseEntity.badRequest().body("사용자를 찾을 수 없습니다.");
+        } else {
+            response.put("message", "인증이 완료되었습니다.");
+            response.put("email", member.get().getEmail());
+        }
+        return ResponseEntity.ok(response);
     }
 
     // 비밀번호 설정 후 회원가입
@@ -116,9 +126,20 @@ public class MemberRestController {
         return ResponseEntity.ok("회원 가입되었습니다.");
     }
 
-    @GetMapping("/login")
-    public String login() {
-        return "login_form";
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginDTO request) {
+        Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
+
+        if (optionalMember.isEmpty()) {
+            return ResponseEntity.badRequest().body("회원이 존재하지 않습니다");
+        }
+        Member member = optionalMember.get();
+
+        if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+            return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
+        }
+
+        return ResponseEntity.ok("로그인에 성공했습니다.");
     }
 
     // members/login을 통해 로그인된 상태여야지 GET 요청 테스트가 성공했음
