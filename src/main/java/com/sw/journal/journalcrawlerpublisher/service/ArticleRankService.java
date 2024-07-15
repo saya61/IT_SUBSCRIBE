@@ -1,0 +1,130 @@
+package com.sw.journal.journalcrawlerpublisher.service;
+
+import com.sw.journal.journalcrawlerpublisher.domain.ArticleRank;
+import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
+import com.sw.journal.journalcrawlerpublisher.repository.ArticleRankRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.OurArticleRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+@Service
+@EnableRedisRepositories
+public class ArticleRankService {
+
+    // 기사 랭크의 isActive가 true일 때 사용할 문자열
+    private final static String ARTICLE_RANK_KEY = "articleRank";
+    // 기사 랭크의 isActive가 false일 때 사용할 문자열
+    private final static String EXPIRED_ARTICLE_RANK_KEY = "expiredArticleRank";
+
+    @Autowired
+    private ArticleRankRepository articleRankRepository;
+
+    @Autowired
+    private OurArticleRepository ourArticleRepository;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    // 초기 설정
+    @PostConstruct    // Spring 실행 시 실행됨
+    public void sendFromDBToRedis(){  // isActive(랭킹 활성)이 true인 값만 Redis에 넣음
+        List<ArticleRank> activeArticles = articleRankRepository.findAllByIsActive(true);
+        for (ArticleRank articleRank : activeArticles) {
+            redisTemplate.opsForZSet().add(ARTICLE_RANK_KEY, articleRank.getId().toString(), articleRank.getCount());
+        }
+    }
+
+    // 랭킹 10위 뽑기
+    public Set<String> getTopTenArticle(){ // Top 10 기사 ID 찾기
+        // Redis는 List가 아닌 Set을 반환
+        return redisTemplate.opsForZSet().reverseRange(ARTICLE_RANK_KEY, 0, 9);
+    }
+
+    // 1주일 지난 기사 isAcrive를 false로 바꾸기
+    @Scheduled(cron = "0 10 4 * * *")   // 매일 04시 10분에 작동됨
+    public void removeExpiredArticle(){
+        List<ArticleRank> isActiveArticles = articleRankRepository.findAllByIsActive(true);     // isActive가 true인 기사 (DB에서는 아직 1주일 지나지 않았다고 알고있는 기사)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");   // 날짜 비교를 위한 format
+        LocalDateTime weekAgo = LocalDateTime.parse(LocalDateTime.now().format(formatter), formatter).minusWeeks(1);    // 현재 시간 기준 1주일 전
+        for (ArticleRank articleRank : isActiveArticles) {
+            OurArticle ourArticle = articleRank.getArticle();   // 기사 랭크를 이용해 기사 찾기
+            LocalDateTime postDate = LocalDateTime.parse(ourArticle.getPostDate().format(formatter), formatter);    // 기사의 작성 날짜
+            if (postDate.isBefore(weekAgo)) {   // 1주일 지난 기사
+                articleRank.setIsActive(false); // isActive = false
+                articleRankRepository.save(articleRank);
+                redisTemplate.opsForZSet().remove(ARTICLE_RANK_KEY, articleRank.getId().toString());    // Redis의 ARTICLE_RANK_KEY 상위 키(테이블)에서 삭제
+            }
+        }
+    }
+
+    // 조회수 증가
+    public void increaseArticleCount(Long articleId){
+        Optional<OurArticle> ourArticleOptional = ourArticleRepository.findById(articleId);
+        if(ourArticleOptional.isPresent()){
+            OurArticle ourArticle = ourArticleOptional.get();
+            Optional<ArticleRank> articleRankOptional = articleRankRepository.findByArticle(ourArticle);  // 기사 ID로 기사 조회수 찾기
+            if(articleRankOptional.isPresent()){
+                ArticleRank articleRank = articleRankOptional.get();
+                if(articleRank.getIsActive()){  // 기사가 isActive = true 즉 1주일 넘지 않았다면
+                    boolean isExist = redisTemplate.opsForZSet().score(ARTICLE_RANK_KEY, articleId.toString()) != null; // Redis에 이미 ARTICLE_RANK_KEY로 있는 기사이면 ture
+                    // 하단의 기능을 크롤링 할 때 넣을지 지금처럼 사용자가 클릭했을 때 넣을지 추후 확인
+                    if(!isExist){   // 없으면 ARTICLE_RANK_KEY로 넣어준다
+                        redisTemplate.opsForZSet().add(ARTICLE_RANK_KEY, articleRank.getId().toString(), articleRank.getCount());
+                    }
+                    redisTemplate.opsForZSet().incrementScore(ARTICLE_RANK_KEY, articleRank.getId().toString(), 1);
+                }
+                else {  // 기사가 isActive = false 즉 1주일 넘었다면
+                    boolean isExist = redisTemplate.opsForZSet().score(EXPIRED_ARTICLE_RANK_KEY, articleId.toString()) != null; // Redis에 이미 EXPIRED_ARTICLE_RANK_KEY 있는 기사이면 ture
+                    if(!isExist){   // 없으면 EXPIRED_ARTICLE_RANK_KEY로 넣어준다
+                        redisTemplate.opsForZSet().add(EXPIRED_ARTICLE_RANK_KEY, articleRank.getId().toString(), articleRank.getCount());
+                    }
+                    redisTemplate.opsForZSet().incrementScore(EXPIRED_ARTICLE_RANK_KEY, articleRank.getId().toString(), 1);
+                }
+            }
+        }
+    }
+
+    // 1시간 마다 Redis -> DB로 전송
+    @Scheduled(cron = "0 30 * * * ?")    // 매 시간 30분에 실행됨
+    public void updateFromRedisToDB(){  // isActive 상관 없이 모든 값 업데이트
+        // Redis에서 isActive가 true인 모든 데이터 가져옴
+        Set<String> activeArticleIds = redisTemplate.opsForZSet().reverseRange(ARTICLE_RANK_KEY, 0, -1);
+        if (activeArticleIds != null) {
+            for (String activeArticleId : activeArticleIds) {
+                Long count = redisTemplate.opsForZSet().score(ARTICLE_RANK_KEY, activeArticleId).longValue();
+                Optional<ArticleRank> articleRankOptional = articleRankRepository.findById(Long.parseLong(activeArticleId));
+                if(articleRankOptional.isPresent()){
+                    ArticleRank articleRank = articleRankOptional.get();
+                    articleRank.setCount(count);
+                    articleRankRepository.save(articleRank);
+                }
+            }
+        }
+        // Redis에서 isActive가 false인 모든 데이터 가져옴
+        Set<String> nonActiveArticleIds = redisTemplate.opsForZSet().reverseRange(EXPIRED_ARTICLE_RANK_KEY, 0, -1);
+        if (!nonActiveArticleIds.isEmpty()) {  // isActive가 false인 데이터가 있을 경우 실행
+            // nonActiveArticleIds != null 형식은 nonActiveArticleIds에 값이 없어도 [](빈 배열)로 반환되어 true로 인식함
+            for (String nonActiveArticleId : nonActiveArticleIds) {
+                Long count = redisTemplate.opsForZSet().score(EXPIRED_ARTICLE_RANK_KEY, nonActiveArticleId).longValue();
+                Optional<ArticleRank> articleRankOptional = articleRankRepository.findById(Long.parseLong(nonActiveArticleId));
+                if(articleRankOptional.isPresent()){
+                    ArticleRank articleRank = articleRankOptional.get();
+                    articleRank.setCount(count);
+                    articleRankRepository.save(articleRank);
+                }
+            }
+            // isActive가 false인 모든 데이터 Redis에서 삭제
+            redisTemplate.delete(EXPIRED_ARTICLE_RANK_KEY);
+        }
+    }
+}
