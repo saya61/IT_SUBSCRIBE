@@ -83,12 +83,11 @@ public class MemberRestController {
         return ResponseEntity.ok("인증번호가 발송되었습니다.");
     }
 
-    // 이메일 인증 코드 검증
-    @PostMapping("/verify-code")
-    public ResponseEntity<String> verifyCode(
+    // 이메일 인증 코드 검증 (회원가입 할 때)
+    @PostMapping("/verify-code-signup")
+    public ResponseEntity<?> verifyCodeToSignUp(
             // 사용자가 입력한 email, 인증번호를 body로 받음
             @RequestBody VerificationDTO request) throws IOException {
-
         // 인증 번호와 사용자 입력 코드 비교
         if (!memberService.verifyCode(request.getEmail(), request.getCode())) {
             return ResponseEntity.badRequest().body("인증코드가 일치하지 않습니다.");
@@ -97,6 +96,32 @@ public class MemberRestController {
         // 인증 성공 후 DB에서 인증번호 삭제
         memberService.deleteCode(request.getEmail());
         return ResponseEntity.ok("인증이 완료되었습니다.");
+    }
+
+    // 이메일 인증 코드 검증 (비밀번호 재설정할 때)
+    @PostMapping("/verify-code-change-pw")
+    public ResponseEntity<?> verifyCodeToChangePw(
+            // 사용자가 입력한 email, 인증번호를 body로 받음
+            @RequestBody VerificationDTO request) throws IOException {
+        Map<String, String> response = new HashMap<>();
+
+        // 인증 번호와 사용자 입력 코드 비교
+        if (!memberService.verifyCode(request.getEmail(), request.getCode())) {
+            return ResponseEntity.badRequest().body("인증코드가 일치하지 않습니다.");
+        }
+
+        // 인증 성공 후 DB에서 인증번호 삭제
+        memberService.deleteCode(request.getEmail());
+
+        // 사용자가 입력한 email을 통해 사용자 id를 찾음
+        Optional<Member> member = memberRepository.findByEmail(request.getEmail());
+        if (member.isEmpty()) {
+            return ResponseEntity.badRequest().body("사용자를 찾을 수 없습니다.");
+        } else {
+            response.put("message", "인증이 완료되었습니다.");
+            response.put("id", member.get().getUsername());
+        }
+        return ResponseEntity.ok(response);
     }
 
     // 비밀번호 설정 후 회원가입
@@ -116,9 +141,20 @@ public class MemberRestController {
         return ResponseEntity.ok("회원 가입되었습니다.");
     }
 
-    @GetMapping("/login")
-    public String login() {
-        return "login_form";
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginDTO request) {
+        Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
+
+        if (optionalMember.isEmpty()) {
+            return ResponseEntity.badRequest().body("회원이 존재하지 않습니다");
+        }
+        Member member = optionalMember.get();
+
+        if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+            return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
+        }
+
+        return ResponseEntity.ok("로그인에 성공했습니다.");
     }
 
     // members/login을 통해 로그인된 상태여야지 GET 요청 테스트가 성공했음
@@ -206,34 +242,36 @@ public class MemberRestController {
     // 비밀번호 재설정
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(
+            // action을 통해 user ID 표시 또는 비밀번호 변경 중 선택
             @RequestParam("action") String action,
+            // user ID 표시하기 위해 RequestParam으로 user ID를 전달 받음
+            @RequestParam("id") String id,
+            // 사용자가 입력한 new password, Confirm password 값 비교하기 위한 DTO
             @RequestBody ChangePwDTO request) {
-        // 사용자 인증
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        Optional<Member> member = memberRepository.findByUsername(currentUsername);
-
-        // 권한 없음
+        // RequestParam을 통해 전달 받은 user ID로 사용자 검색
+        Optional<Member> member = memberRepository.findByUsername(id);
+        // 전달 받은 user ID의 사용자가 존재하지 않을때
         if (member.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자를 찾을 수 없습니다.");
         }
-        Member currentMember = member.get();
 
-        // action을 통해 id 표시 또는 비밀번호 변경 중 선택
         switch (action) {
+            // user ID 표시하는 부분
             // show_id일때는 body 값 {}로 보내야함
             case "show_id" :
-                return ResponseEntity.ok(currentUsername);
+                return ResponseEntity.ok(id);
+            // new password, Confirm password 부분
             case "change_password" :
+                // new password, Confirm password 일치하지 않을 때
                 if (!request.getNewPw().equals(request.getNewPwConfirm())) {
                     return ResponseEntity.badRequest().body("비밀번호가 맞지 않습니다.");
+                // 일치할시 비밀번호가 성공적으로 변경됨
+                } else {
+                    Member Targetmember = member.get();
+                    Targetmember.setPassword(passwordEncoder.encode(request.getNewPw()));
+                    memberRepository.save(Targetmember);
+                    return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
                 }
-                // 비밀번호 변경
-                if (!request.getNewPw().isEmpty()) {
-                    currentMember.setPassword(passwordEncoder.encode(request.getNewPw()));
-                }
-                memberRepository.save(currentMember);
-                return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
             default:
                 return ResponseEntity.badRequest().body("잘못된 요청입니다.");
         }
