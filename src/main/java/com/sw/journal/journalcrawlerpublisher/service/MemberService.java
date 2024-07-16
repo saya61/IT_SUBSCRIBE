@@ -85,35 +85,6 @@ public class MemberService implements UserDetailsService {
         return memberRepository.existsByEmail(email);
     }
 
-    // 난수 생성 메서드
-    public String sendVerificationCode(String email) {
-//        String code = String.format("%06d", new Random().nextInt(999999));
-        // 일단 난수 랜덤 생성하지 않고 123456으로 통일
-        String code = "123456";
-        VerificationCode verificationCode = new VerificationCode();
-        verificationCode.setEmail(email);
-        verificationCode.setCode(code);
-        verificationCode.setCreatedAt(LocalDateTime.now());
-        verificationCodeRepository.save(verificationCode);
-
-        return code;
-    }
-
-    // 난수 검증 메서드
-    public boolean verifyCode(String email, String code) {
-        Optional<VerificationCode> optionalVerificationCode = verificationCodeRepository.findByEmail(email);
-        if (optionalVerificationCode.isPresent()) {
-            VerificationCode verificationCode = optionalVerificationCode.get();
-            return verificationCode.getCode().equals(code);
-        }
-        return false;
-    }
-
-    // 난수 삭제 메서드
-    public void deleteCode(String email) {
-        verificationCodeRepository.deleteByEmail(email);
-    }
-
     // 유저 id로 유저 선호 카테고리 검색
     public List<UserFavoriteCategory> findByMemberId(Member member) {
         return userFavoriteCategoryRepository.findByMember(member);
