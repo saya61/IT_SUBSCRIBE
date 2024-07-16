@@ -12,12 +12,17 @@ public class MypageDTO {
     private String username;
     private String nickname;
     private String email;
-    private ProfileImage profileImageId;
+    private String profileImageUrl;
 
     public MypageDTO(Member member) {
         this.username = member.getUsername();
         this.nickname = member.getNickname();
         this.email = member.getEmail();
-        this.profileImageId = member.getProfileImage();
+        // 유저 프로필 이미지 URL
+        if (member.getProfileImage() != null) {
+            this.profileImageUrl = "/api/members/mypage/get-profile-image?filename=" + member.getProfileImage().getFileName();
+        } else {
+            this.profileImageUrl = null;
+        }
     }
 }

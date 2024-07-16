@@ -6,11 +6,14 @@ import com.sw.journal.journalcrawlerpublisher.domain.*;
 import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
-import com.sw.journal.journalcrawlerpublisher.service.MailService;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import com.sw.journal.journalcrawlerpublisher.service.ProfileImageService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,7 +22,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 @RestController
@@ -35,6 +42,10 @@ public class MemberRestController {
 
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper jacksonObjectMapper;
+
+    // 프로필 이미지 업로드 경로
+    @Value("${upload.path}")
+    private String uploadDir;
 
     // 회원가입 할 때 아이디, 이메일, 닉네임 중복 확인
     @PostMapping("/check-duplicate")
@@ -313,5 +324,46 @@ public class MemberRestController {
 
         // 프로필 사진 변경
         return ResponseEntity.ok(profileImageService.updateProfileImage(currentMember, file));
+    }
+
+
+    // React에서 이미지를 표시하기 위해 이미지를 다운로드할 수 있는 엔드포인트
+    // 파일을 읽어 HTTP 응답으로 반환
+    @GetMapping("/mypage/get-profile-image")
+    public ResponseEntity<Resource> getProfileImage(@RequestParam("filename") String filename) {
+        try {
+            // 파일 업로드 경로
+            File uploadDirFile = new File(uploadDir);
+
+            // 파일의 절대 경로 생성
+            Path filePath = Paths.get(uploadDirFile.getAbsolutePath()).resolve(filename).normalize();
+            // 파일 경로를 URI로 변환하여 UrlResource 객체 생성
+            Resource resource = new UrlResource(filePath.toUri());
+
+            // 리소스가 존재하는지 확인
+            if (resource.exists()) {
+                // 기본 Content-Type 설정
+                String contentType = "application/octet-stream";
+                // 파일 확장자에 따라 적절한 Content-Type 설정
+                if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
+                    contentType = "image/jpeg";
+                } else if (filename.endsWith(".png")) {
+                    contentType = "image/png";
+                }
+
+                // 리소스가 존재하면 HTTP 응답을 생성하여 반환
+                return ResponseEntity.ok() // 200 OK 상태 코드 설정
+                        // Content-Disposition 헤더를 설정하여 파일이 첨부 파일로 다운로드되도록 함
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        // 적절한 Content-Type 헤더를 설정
+                        .header(HttpHeaders.CONTENT_TYPE, contentType)
+                        // 리소스를 응답 본문에 포함
+                        .body(resource);
+            } else { // 리소스가 존재하지 않으면 404 Not Found 상태 코드 반환
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } catch (MalformedURLException ex) { // 파일 경로가 잘못되었을 경우 500 Internal Server Error 상태 코드 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }
