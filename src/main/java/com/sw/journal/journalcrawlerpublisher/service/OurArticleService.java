@@ -5,10 +5,13 @@ import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
 import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.OurArticleRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.TagArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.TagRepository;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,8 +31,20 @@ public class OurArticleService {
     private TagRepository tagRepository;
 
     @Autowired
+    private TagArticleRepository tagArticleRepository;
+
+    @Autowired
     public OurArticleService(OurArticleRepository ourArticleRepository) {
         this.ourArticleRepository = ourArticleRepository;
+    }
+
+    // 카테고리별 페이지네이션된 기사 검색
+    public Page<OurArticle> findByCategory(Category category, Pageable pageable) {
+        return ourArticleRepository.findByCategory(category, pageable);
+    }
+
+    public Page<OurArticle> findAll(Pageable pageable) {
+        return ourArticleRepository.findAll(pageable);
     }
 
     // 1개의 카테고리로만 검색
@@ -71,4 +86,5 @@ public class OurArticleService {
     public List<OurArticle> findByCategoriesAndTags(List<Category> categories, List<Tag> tags) {
         return ourArticleRepository.findByCategoriesAndTags(categories, tags, tags.size());
     }
+
 }

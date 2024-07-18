@@ -124,7 +124,7 @@ class CioCrawlerTest {
                 Random random = new Random();
                 ArticleRank articleRank = new ArticleRank();
                 articleRank.setArticle(savedArticle);
-                articleRank.setCount((long) random.nextInt(100));
+                articleRank.setCount((long)0);
                 articleRank.setIsActive(true);
                 try {
                     articleRankRepository.save(articleRank);

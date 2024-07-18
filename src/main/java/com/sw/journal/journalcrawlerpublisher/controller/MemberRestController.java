@@ -327,4 +327,6 @@ public class MemberRestController {
         // 프로필 사진 변경
         return ResponseEntity.ok(profileImageService.updateProfileImage(currentMember, file));
     }
+
+
 }

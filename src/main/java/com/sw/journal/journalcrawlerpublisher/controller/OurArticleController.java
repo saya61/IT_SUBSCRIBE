@@ -3,32 +3,82 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
 import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
+import com.sw.journal.journalcrawlerpublisher.dto.OurArticleWithTagsDTO;
 import com.sw.journal.journalcrawlerpublisher.service.OurArticleService;
+import com.sw.journal.journalcrawlerpublisher.service.TagService;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/article")
 public class OurArticleController {
 
     private final OurArticleService ourArticleService;
+    private final TagService tagService;
 
-    @Autowired
-    public OurArticleController(OurArticleService ourArticleService) {
-        this.ourArticleService = ourArticleService;
+
+    // 전체 기사 보기 (태그 포함)
+    @GetMapping("/all")
+    public Page<OurArticleWithTagsDTO> getAllArticles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
+
+        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+                .map(article -> {
+                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setContent(article.getContent());
+                    dto.setPostDate(article.getPostDate());
+                    dto.setCategory(article.getCategory());
+                    dto.setSource(article.getSource());
+                    dto.setTags(tagService.findByArticle(article));
+                    return dto;
+                }).collect(Collectors.toList());
+
+        return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
     }
 
-    // 카테고리 1개로 기사 검색
+    // 카테고리별 페이지네이션된 기사 검색 (태그 포함)
     @GetMapping("/category/{categoryId}")
-    public List<OurArticle> getArticlesByCategory(@PathVariable Long categoryId) {
+    public Page<OurArticleWithTagsDTO> getArticlesByCategory(
+            @PathVariable Long categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
         Category category = new Category();
         category.setId(categoryId);
-        return ourArticleService.findByCategory(category);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<OurArticle> articlePage = ourArticleService.findByCategory(category, pageable);
+
+        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+                .map(article -> {
+                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setContent(article.getContent());
+                    dto.setPostDate(article.getPostDate());
+                    dto.setCategory(article.getCategory());
+                    dto.setSource(article.getSource());
+                    dto.setTags(tagService.findByArticle(article));
+                    return dto;
+                }).collect(Collectors.toList());
+
+        return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
     }
+
 
     // 카테고리 n개로 검색
     @PostMapping("/categories")
