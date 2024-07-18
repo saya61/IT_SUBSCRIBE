@@ -8,17 +8,32 @@ import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import com.sw.journal.journalcrawlerpublisher.service.ProfileImageService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 @RestController
@@ -26,12 +41,18 @@ import java.util.*;
 @RequestMapping("/api/members")
 public class MemberRestController {
     private final MemberService memberService;
-    private final PasswordEncoder passwordEncoder;
+    private final ProfileImageService profileImageService;
+
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
-    private final ProfileImageService profileImageService;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
+
+    private final PasswordEncoder passwordEncoder;
     private final ObjectMapper jacksonObjectMapper;
+
+    // 프로필 이미지 업로드 경로
+    @Value("${upload.path}")
+    private String uploadDir;
 
     // 회원가입 할 때 아이디, 이메일, 닉네임 중복 확인
     @PostMapping("/check-duplicate")
@@ -70,35 +91,6 @@ public class MemberRestController {
         return ResponseEntity.ok(response);
     }
 
-    // 이메일 인증 코드 발송
-    @PostMapping("/send-code")
-    public ResponseEntity<?> sendCode(
-            @RequestBody String emailRequest) throws IOException {
-        // JSON 파싱
-        JsonNode jsonNode = jacksonObjectMapper.readTree(emailRequest);
-        String email = jsonNode.get("email").asText();
-
-        // 인증번호 발송
-        memberService.sendVerificationCode(email);
-        return ResponseEntity.ok("인증번호가 발송되었습니다.");
-    }
-
-    // 이메일 인증 코드 검증
-    @PostMapping("/verify-code")
-    public ResponseEntity<String> verifyCode(
-            // 사용자가 입력한 email, 인증번호를 body로 받음
-            @RequestBody VerificationDTO request) throws IOException {
-
-        // 인증 번호와 사용자 입력 코드 비교
-        if (!memberService.verifyCode(request.getEmail(), request.getCode())) {
-            return ResponseEntity.badRequest().body("인증코드가 일치하지 않습니다.");
-        }
-
-        // 인증 성공 후 DB에서 인증번호 삭제
-        memberService.deleteCode(request.getEmail());
-        return ResponseEntity.ok("인증이 완료되었습니다.");
-    }
-
     // 비밀번호 설정 후 회원가입
     @PostMapping("/register")
     public ResponseEntity<String> register(
@@ -116,9 +108,30 @@ public class MemberRestController {
         return ResponseEntity.ok("회원 가입되었습니다.");
     }
 
-    @GetMapping("/login")
-    public String login() {
-        return "login_form";
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
+        Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
+
+        if (optionalMember.isEmpty()) {
+            return ResponseEntity.badRequest().body("회원이 존재하지 않습니다");
+        }
+        Member member = optionalMember.get();
+
+        if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+            return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
+        }
+
+        // 세션 저장 및 세션 키 헤더 (setCookie) 응답
+        UserDetails userDetails = User.withUsername(member.getUsername())
+                .password(member.getPassword())
+                .roles("USER").build();
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+
+        HttpSession session = httpRequest.getSession(true);
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+
+        return ResponseEntity.ok("로그인에 성공했습니다.");
     }
 
     // members/login을 통해 로그인된 상태여야지 GET 요청 테스트가 성공했음
@@ -206,34 +219,36 @@ public class MemberRestController {
     // 비밀번호 재설정
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(
+            // action을 통해 user ID 표시 또는 비밀번호 변경 중 선택
             @RequestParam("action") String action,
+            // user ID 표시하기 위해 RequestParam으로 user ID를 전달 받음
+            @RequestParam("id") String id,
+            // 사용자가 입력한 new password, Confirm password 값 비교하기 위한 DTO
             @RequestBody ChangePwDTO request) {
-        // 사용자 인증
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        Optional<Member> member = memberRepository.findByUsername(currentUsername);
-
-        // 권한 없음
+        // RequestParam을 통해 전달 받은 user ID로 사용자 검색
+        Optional<Member> member = memberRepository.findByUsername(id);
+        // 전달 받은 user ID의 사용자가 존재하지 않을때
         if (member.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자를 찾을 수 없습니다.");
         }
-        Member currentMember = member.get();
 
-        // action을 통해 id 표시 또는 비밀번호 변경 중 선택
         switch (action) {
+            // user ID 표시하는 부분
             // show_id일때는 body 값 {}로 보내야함
             case "show_id" :
-                return ResponseEntity.ok(currentUsername);
+                return ResponseEntity.ok(id);
+            // new password, Confirm password 부분
             case "change_password" :
+                // new password, Confirm password 일치하지 않을 때
                 if (!request.getNewPw().equals(request.getNewPwConfirm())) {
                     return ResponseEntity.badRequest().body("비밀번호가 맞지 않습니다.");
+                // 일치할시 비밀번호가 성공적으로 변경됨
+                } else {
+                    Member Targetmember = member.get();
+                    Targetmember.setPassword(passwordEncoder.encode(request.getNewPw()));
+                    memberRepository.save(Targetmember);
+                    return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
                 }
-                // 비밀번호 변경
-                if (!request.getNewPw().isEmpty()) {
-                    currentMember.setPassword(passwordEncoder.encode(request.getNewPw()));
-                }
-                memberRepository.save(currentMember);
-                return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
             default:
                 return ResponseEntity.badRequest().body("잘못된 요청입니다.");
         }
@@ -329,4 +344,43 @@ public class MemberRestController {
     }
 
 
+    // React에서 이미지를 표시하기 위해 이미지를 다운로드할 수 있는 엔드포인트
+    // 파일을 읽어 HTTP 응답으로 반환
+    @GetMapping("/mypage/get-profile-image")
+    public ResponseEntity<Resource> getProfileImage(@RequestParam("filename") String filename) {
+        try {
+            // 파일 업로드 경로
+            File uploadDirFile = new File(uploadDir);
+
+            // 파일의 절대 경로 생성
+            Path filePath = Paths.get(uploadDirFile.getAbsolutePath()).resolve(filename).normalize();
+            // 파일 경로를 URI로 변환하여 UrlResource 객체 생성
+            Resource resource = new UrlResource(filePath.toUri());
+
+            // 리소스가 존재하는지 확인
+            if (resource.exists()) {
+                // 기본 Content-Type 설정
+                String contentType = "application/octet-stream";
+                // 파일 확장자에 따라 적절한 Content-Type 설정
+                if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
+                    contentType = "image/jpeg";
+                } else if (filename.endsWith(".png")) {
+                    contentType = "image/png";
+                }
+
+                // 리소스가 존재하면 HTTP 응답을 생성하여 반환
+                return ResponseEntity.ok() // 200 OK 상태 코드 설정
+                        // Content-Disposition 헤더를 설정하여 파일이 첨부 파일로 다운로드되도록 함
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        // 적절한 Content-Type 헤더를 설정
+                        .header(HttpHeaders.CONTENT_TYPE, contentType)
+                        // 리소스를 응답 본문에 포함
+                        .body(resource);
+            } else { // 리소스가 존재하지 않으면 404 Not Found 상태 코드 반환
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } catch (MalformedURLException ex) { // 파일 경로가 잘못되었을 경우 500 Internal Server Error 상태 코드 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }
