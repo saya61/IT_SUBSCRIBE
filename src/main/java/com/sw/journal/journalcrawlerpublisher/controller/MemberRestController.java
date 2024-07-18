@@ -8,6 +8,8 @@ import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import com.sw.journal.journalcrawlerpublisher.service.ProfileImageService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -16,9 +18,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -102,7 +109,7 @@ public class MemberRestController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO request) {
+    public ResponseEntity<String> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
         Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
 
         if (optionalMember.isEmpty()) {
@@ -113,6 +120,16 @@ public class MemberRestController {
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
         }
+
+        // 세션 저장 및 세션 키 헤더 (setCookie) 응답
+        UserDetails userDetails = User.withUsername(member.getUsername())
+                .password(member.getPassword())
+                .roles("USER").build();
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+
+        HttpSession session = httpRequest.getSession(true);
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
 
         return ResponseEntity.ok("로그인에 성공했습니다.");
     }
