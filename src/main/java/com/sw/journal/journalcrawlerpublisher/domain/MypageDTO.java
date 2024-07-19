@@ -3,6 +3,7 @@ package com.sw.journal.journalcrawlerpublisher.domain;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -13,6 +14,7 @@ public class MypageDTO {
     private String nickname;
     private String email;
     private String profileImageUrl;
+    private LocalDateTime createdAt;
 
     public MypageDTO(Member member) {
         this.username = member.getUsername();
@@ -24,5 +26,6 @@ public class MypageDTO {
         } else {
             this.profileImageUrl = null;
         }
+        this.createdAt = member.getCreatedAt();
     }
 }

@@ -108,6 +108,7 @@ public class MemberRestController {
         return ResponseEntity.ok("회원 가입되었습니다.");
     }
 
+    // 로그인
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
         Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
@@ -132,6 +133,17 @@ public class MemberRestController {
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
 
         return ResponseEntity.ok("로그인에 성공했습니다.");
+    }
+
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("로그아웃에 성공했습니다.");
     }
 
     // members/login을 통해 로그인된 상태여야지 GET 요청 테스트가 성공했음
@@ -286,8 +298,7 @@ public class MemberRestController {
     @PostMapping("mypage/edit-favorite-category")
     @Transactional
     public ResponseEntity<String> editFavoriteCategory(
-            // body에 [1, 2] 이런 식으로 리스트로 보냄
-            @RequestBody List<Long> categoryIds) throws IOException {
+            @RequestBody UserFavoriteCategoryDTO userFavoriteCategoryDTO) throws IOException {
         // 사용자 인증
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -305,8 +316,8 @@ public class MemberRestController {
         // 새로운 선호 카테고리 리스트 반영
         // 선호 카테고리 리스트를 기반으로 Stream 생성
         // categoryIds는 사용자가 선택한 카테고리 ID 목록
-        if (!categoryIds.isEmpty()) {
-            List<UserFavoriteCategory> userFavoriteCategories = categoryIds.stream()
+        if (!userFavoriteCategoryDTO.getCategoryIds().isEmpty()) {
+            List<UserFavoriteCategory> userFavoriteCategories = userFavoriteCategoryDTO.getCategoryIds().stream()
                     // 각 categoryId를 입력으로 받아서 UserFavoriteCategory 객체를 생성하는 람다 표현식
                     .map(categoryId -> {
                         // 각 UserFavoriteCategory 객체에는 현재 member, 선택한 category에 대응하는 Category 객체가 설정됨
@@ -382,5 +393,31 @@ public class MemberRestController {
         } catch (MalformedURLException ex) { // 파일 경로가 잘못되었을 경우 500 Internal Server Error 상태 코드 반환
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    // 알람 설정
+    @PostMapping("/mypage/update-alarm")
+    public ResponseEntity<String> updateAlarm(@RequestBody String alarmRequest) throws IOException{
+        // 사용자 인증
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Optional<Member> member = memberRepository.findByUsername(currentUsername);
+
+        // 권한 없음
+        if (member.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        Member currentMember = member.get();
+
+        // JSON 파싱
+        JsonNode jsonNode = jacksonObjectMapper.readTree(alarmRequest);
+        boolean alarm = jsonNode.get("alarm").asBoolean();
+
+        // 닉네임 변경
+        if (!alarmRequest.isEmpty()) {
+            currentMember.setAlarm(alarm);
+        }
+        memberRepository.save(currentMember);
+        return ResponseEntity.ok("알람 설정이 " +alarm+ "로 변경되었습니다.");
     }
 }
