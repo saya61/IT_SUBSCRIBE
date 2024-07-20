@@ -3,9 +3,13 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
 import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
+import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
 import com.sw.journal.journalcrawlerpublisher.dto.OurArticleWithTagsDTO;
+import com.sw.journal.journalcrawlerpublisher.service.CommentService;
+import com.sw.journal.journalcrawlerpublisher.service.ImageService;
 import com.sw.journal.journalcrawlerpublisher.service.OurArticleService;
 import com.sw.journal.journalcrawlerpublisher.service.TagService;
+import com.sw.journal.journalcrawlerpublisher.domain.Image;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -14,7 +18,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +32,8 @@ public class OurArticleController {
 
     private final OurArticleService ourArticleService;
     private final TagService tagService;
+    private final ImageService imageService;
+    private final CommentService commentService;
 
 
     // 전체 기사 보기 (태그 포함)
@@ -46,6 +54,9 @@ public class OurArticleController {
                     dto.setCategory(article.getCategory());
                     dto.setSource(article.getSource());
                     dto.setTags(tagService.findByArticle(article));
+                    dto.setImgUrls(imageService.findByArticle(article).stream()
+                            .map(Image::getImgUrl)
+                            .collect(Collectors.toList()));
                     return dto;
                 }).collect(Collectors.toList());
 
@@ -73,10 +84,19 @@ public class OurArticleController {
                     dto.setCategory(article.getCategory());
                     dto.setSource(article.getSource());
                     dto.setTags(tagService.findByArticle(article));
+                    dto.setImgUrls(imageService.findByArticle(article).stream()
+                            .map(Image::getImgUrl)
+                            .collect(Collectors.toList()));
                     return dto;
                 }).collect(Collectors.toList());
 
         return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
+    }
+
+    @GetMapping("/article/{articleId}")
+    public ResponseEntity<List<CommentDTO>> getCommentsByArticle(@PathVariable Long articleId) {
+        List<CommentDTO> comments = commentService.getCommentsByArticle(articleId);
+        return ResponseEntity.ok(comments);
     }
 
 

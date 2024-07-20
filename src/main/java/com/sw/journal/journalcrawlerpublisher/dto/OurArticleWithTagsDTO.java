@@ -18,4 +18,5 @@ public class OurArticleWithTagsDTO {
     private Category category;
     private String source;
     private List<Tag> tags;
+    private List<String> imgUrls; // 여러 개의 이미지 URL 추가
 }

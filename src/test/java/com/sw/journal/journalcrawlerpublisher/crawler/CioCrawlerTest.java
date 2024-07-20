@@ -150,7 +150,7 @@ class CioCrawlerTest {
         String compareURL = "https://www.ciokorea.com/news/";  // 문자 0~29
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime today = LocalDateTime.parse(LocalDateTime.now().format(formatter), formatter);
-        LocalDateTime yesterday = today.minusDays(1);
+        LocalDateTime yesterday = today.minusDays(20);
 
         Connection conn = Jsoup.connect(URL);
         try {
