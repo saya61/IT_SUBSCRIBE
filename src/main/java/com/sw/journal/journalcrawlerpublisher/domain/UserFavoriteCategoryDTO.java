@@ -6,9 +6,8 @@ import lombok.Setter;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Getter @Setter
 @RequiredArgsConstructor
-public class UserFavoriteCategoryDTO {
+public class UserFavoriteCategoryDTO { // DTO 클래스 역할을 하는 클래스
     private List<Long> categoryIds;
 }
