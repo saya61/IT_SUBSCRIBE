@@ -110,7 +110,7 @@ public class MemberRestController {
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
         Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
 
         if (optionalMember.isEmpty()) {
@@ -132,7 +132,14 @@ public class MemberRestController {
         HttpSession session = httpRequest.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
 
-        return ResponseEntity.ok("로그인에 성공했습니다.");
+        // 사용자 정보 반환
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("message", "로그인에 성공했습니다.");
+        userInfo.put("nickname", member.getNickname());
+        userInfo.put("email", member.getEmail());
+        userInfo.put("avatarUrl", member.getProfileImage() != null ? member.getProfileImage().getFileUrl() : null);
+
+        return ResponseEntity.ok(userInfo);
     }
 
     // 로그아웃
