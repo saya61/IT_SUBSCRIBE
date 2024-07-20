@@ -110,7 +110,7 @@ public class MemberRestController {
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
         Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
 
         if (optionalMember.isEmpty()) {
@@ -132,7 +132,14 @@ public class MemberRestController {
         HttpSession session = httpRequest.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
 
-        return ResponseEntity.ok("로그인에 성공했습니다.");
+        // 사용자 정보 반환
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("message", "로그인에 성공했습니다.");
+        userInfo.put("nickname", member.getNickname());
+        userInfo.put("email", member.getEmail());
+        userInfo.put("avatarUrl", member.getProfileImage() != null ? member.getProfileImage().getFileUrl() : null);
+
+        return ResponseEntity.ok(userInfo);
     }
 
     // 로그아웃
@@ -254,7 +261,7 @@ public class MemberRestController {
                 // new password, Confirm password 일치하지 않을 때
                 if (!request.getNewPw().equals(request.getNewPwConfirm())) {
                     return ResponseEntity.badRequest().body("비밀번호가 맞지 않습니다.");
-                // 일치할시 비밀번호가 성공적으로 변경됨
+                    // 일치할시 비밀번호가 성공적으로 변경됨
                 } else {
                     Member Targetmember = member.get();
                     Targetmember.setPassword(passwordEncoder.encode(request.getNewPw()));
@@ -284,11 +291,11 @@ public class MemberRestController {
         List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMemberId(currentMember);
 
         // 현재 사용자의 선호 카테고리 목록을 카테고리 이름으로 매핑하여 반환
-        List<String> favoriteCategoryNames = userFavoriteCategories.stream()
+        List<Long> favoriteCategoryNames = userFavoriteCategories.stream()
                 // 각 UserFavoriteCategory 객체에서 Category 객체를 추출
                 .map(UserFavoriteCategory::getCategory)
                 // 각 Category 객체에서 카테고리 이름 추출
-                .map(Category::getName)
+                .map(Category::getId)
                 .toList();
 
         return ResponseEntity.ok(favoriteCategoryNames.toString());
