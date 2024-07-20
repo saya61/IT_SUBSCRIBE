@@ -24,10 +24,10 @@ public class SecurityConfig {
                                 .requestMatchers("/api/members/mypage/**").permitAll()   // 인증 필요
                                 .requestMatchers("/members/login", "/members/register").permitAll()  // 로그인, 회원가입 페이지 허용
                                 .anyRequest().permitAll()
-//                ).formLogin(formLogin ->
-//                        formLogin
-//                                .loginPage("/members/login")
-//                                .defaultSuccessUrl("/")
+                ).formLogin(formLogin ->
+                        formLogin
+                                .loginPage("/members/login")
+                                .defaultSuccessUrl("/")
                 ).sessionManagement(sessionManagement ->
                         sessionManagement
                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 필요할 때만 세션 생성

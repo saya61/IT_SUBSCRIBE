@@ -254,7 +254,7 @@ public class MemberRestController {
                 // new password, Confirm password 일치하지 않을 때
                 if (!request.getNewPw().equals(request.getNewPwConfirm())) {
                     return ResponseEntity.badRequest().body("비밀번호가 맞지 않습니다.");
-                // 일치할시 비밀번호가 성공적으로 변경됨
+                    // 일치할시 비밀번호가 성공적으로 변경됨
                 } else {
                     Member Targetmember = member.get();
                     Targetmember.setPassword(passwordEncoder.encode(request.getNewPw()));
@@ -284,11 +284,11 @@ public class MemberRestController {
         List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMemberId(currentMember);
 
         // 현재 사용자의 선호 카테고리 목록을 카테고리 이름으로 매핑하여 반환
-        List<String> favoriteCategoryNames = userFavoriteCategories.stream()
+        List<Long> favoriteCategoryNames = userFavoriteCategories.stream()
                 // 각 UserFavoriteCategory 객체에서 Category 객체를 추출
                 .map(UserFavoriteCategory::getCategory)
                 // 각 Category 객체에서 카테고리 이름 추출
-                .map(Category::getName)
+                .map(Category::getId)
                 .toList();
 
         return ResponseEntity.ok(favoriteCategoryNames.toString());
