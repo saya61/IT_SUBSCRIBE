@@ -3,6 +3,8 @@ package com.sw.journal.journalcrawlerpublisher.repository;
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
 import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,14 @@ import java.util.Optional;
 // wild-mantle 07-08
 @Repository
 public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
+
+
+    // wild-mantle 07-16
+    // 카테고리별 페이지네이션된 기사 검색
+    Page<OurArticle> findByCategory(Category category, Pageable pageable);
+
+
+
     // 기사 URL로 기사 검색
     Optional<OurArticle> findBySource(String source);
 
