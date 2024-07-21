@@ -283,12 +283,12 @@ public class MemberRestController {
         Member currentMember = member.get();
         List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMemberId(currentMember);
 
-        // 현재 사용자의 선호 카테고리 목록을 카테고리 이름으로 매핑하여 반환
-        List<String> favoriteCategoryNames = userFavoriteCategories.stream()
+        // 현재 사용자의 선호 카테고리 목록을 카테고리 id로 매핑하여 반환
+        List<Long> favoriteCategoryNames = userFavoriteCategories.stream()
                 // 각 UserFavoriteCategory 객체에서 Category 객체를 추출
                 .map(UserFavoriteCategory::getCategory)
-                // 각 Category 객체에서 카테고리 이름 추출
-                .map(Category::getName)
+                // 각 Category 객체에서 카테고리 id 추출
+                .map(Category::getId)
                 .toList();
 
         return ResponseEntity.ok(favoriteCategoryNames.toString());
