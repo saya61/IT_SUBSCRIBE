@@ -3,6 +3,7 @@ package com.sw.journal.journalcrawlerpublisher.domain;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,7 +23,7 @@ public class MypageDTO {
         this.email = member.getEmail();
         // 유저 프로필 이미지 URL
         if (member.getProfileImage() != null) {
-            this.profileImageUrl = "/api/members/mypage/get-profile-image?filename=" + member.getProfileImage().getFileName();
+            this.profileImageUrl = member.getProfileImage().getFileUrl();
         } else {
             this.profileImageUrl = null;
         }
