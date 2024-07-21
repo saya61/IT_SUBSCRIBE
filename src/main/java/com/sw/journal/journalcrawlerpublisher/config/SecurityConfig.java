@@ -23,6 +23,7 @@ public class SecurityConfig {
                         authorizeHttpRequests
                                 .requestMatchers("/api/members/mypage/**").permitAll()   // 인증 필요
                                 .requestMatchers("/members/login", "/members/register").permitAll()  // 로그인, 회원가입 페이지 허용
+                                .requestMatchers("/recommend-article/**").authenticated() // 추천 기사 경로도 인증 필요
                                 .anyRequest().permitAll()
                 ).formLogin(formLogin ->
                         formLogin

@@ -94,4 +94,8 @@ public class MemberService implements UserDetailsService {
     public void saveAll(List<UserFavoriteCategory> userFavoriteCategories) {
         userFavoriteCategoryRepository.saveAll(userFavoriteCategories);
     }
+
+    public Optional<Member> findByUsername(String currentUsername) {
+        return memberRepository.findByUsername(currentUsername);
+    }
 }

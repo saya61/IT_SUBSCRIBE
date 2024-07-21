@@ -34,6 +34,10 @@ public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
     @Query("SELECT a FROM OurArticle a WHERE a.category IN :categories")
     List<OurArticle> findByCategories(@Param("categories") List<Category> categories);
 
+    // n개 카테고리 최신순 검색
+    @Query("SELECT a FROM OurArticle a WHERE a.category IN :categories ORDER BY a.postDate DESC")
+    List<OurArticle> findTopByCategoriesOrderByPostDate(@Param("categories") List<Category> categories, Pageable pageable);
+
     // 태그별 기사 검색
     @Query("SELECT ta.article FROM TagArticle ta WHERE ta.tag = :tag")
     List<OurArticle> findByTag(@Param("tag") Tag tag);
