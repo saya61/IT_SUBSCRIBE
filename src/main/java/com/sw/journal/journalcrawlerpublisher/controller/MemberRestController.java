@@ -43,6 +43,8 @@ public class MemberRestController {
     private final MemberService memberService;
     private final ProfileImageService profileImageService;
 
+    // 다민씨 이거 서비스로 바꾸셔야 전문가처럼 보일 것 같아요 죄송해여 제가 너무 피곤해서 왠만하면 제가 바꾸는데
+    // 괜히ㅣ 바꿨다 고장나면 너무 맘이 아파서 남깁니다.
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;

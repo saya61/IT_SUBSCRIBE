@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -37,6 +38,7 @@ public class ArticleRankService {
 
     // 초기 설정
     @PostConstruct    // Spring 실행 시 실행됨
+    @Scheduled(cron = "0 0 4 * * *") // 매일 새벽 4시에 실행되게
     public void sendFromDBToRedis(){  // isActive(랭킹 활성)이 true인 값만 Redis에 넣음
         List<ArticleRank> activeArticles = articleRankRepository.findAllByIsActive(true);
         for (ArticleRank articleRank : activeArticles) {
@@ -126,5 +128,18 @@ public class ArticleRankService {
             // isActive가 false인 모든 데이터 Redis에서 삭제
             redisTemplate.delete(EXPIRED_ARTICLE_RANK_KEY);
         }
+    }
+
+    // 상위 8개 기사 가져오기
+    public List<OurArticle> getTopEightArticles() {
+        Set<String> topEightArticleIds = redisTemplate.opsForZSet().reverseRange(ARTICLE_RANK_KEY, 0, 7);
+        List<OurArticle> topEightArticles = new ArrayList<>();
+        if (topEightArticleIds != null) {
+            for (String articleId : topEightArticleIds) {
+                Optional<ArticleRank> articleRankOptional = articleRankRepository.findById(Long.parseLong(articleId));
+                articleRankOptional.ifPresent(articleRank -> topEightArticles.add(articleRank.getArticle()));
+            }
+        }
+        return topEightArticles;
     }
 }
