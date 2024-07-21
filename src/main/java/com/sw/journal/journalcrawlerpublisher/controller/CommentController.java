@@ -1,12 +1,18 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
+import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
 import com.sw.journal.journalcrawlerpublisher.service.CommentService;
+import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/comment")
@@ -14,10 +20,23 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
+    private final MemberService memberService;
 
-    // 댓글 생성
     @PostMapping
     public ResponseEntity<CommentDTO> createComment(@RequestBody CommentDTO commentDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Optional<Member> member = memberService.findByUsername(currentUsername);
+
+        if (!member.isPresent()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Member foundMember = member.get();
+        commentDTO.setMemberId(foundMember.getId());
+        commentDTO.setMemberNickname(foundMember.getNickname());
+        commentDTO.setProfileImageURL(foundMember.getProfileImage().getFileUrl());
+
         CommentDTO createdComment = commentService.createComment(commentDTO);
         return ResponseEntity.ok(createdComment);
     }
