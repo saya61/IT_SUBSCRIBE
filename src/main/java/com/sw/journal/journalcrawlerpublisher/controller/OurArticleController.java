@@ -14,10 +14,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,6 +89,30 @@ public class OurArticleController {
 
         return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
     }
+
+    // 최근 기사 18개 가져오기
+    @GetMapping("/recent")
+    public List<OurArticleWithTagsDTO> getRecentArticles() {
+        Pageable pageable = PageRequest.of(0, 18, Sort.by(Sort.Direction.DESC, "postDate"));
+        List<OurArticle> articles = ourArticleService.findAll(pageable).getContent();
+
+        return articles.stream()
+                .map(article -> {
+                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setContent(article.getContent());
+                    dto.setPostDate(article.getPostDate());
+                    dto.setCategory(article.getCategory());
+                    dto.setSource(article.getSource());
+                    dto.setTags(tagService.findByArticle(article));
+                    dto.setImgUrls(imageService.findByArticle(article).stream()
+                            .map(Image::getImgUrl)
+                            .collect(Collectors.toList()));
+                    return dto;
+                }).collect(Collectors.toList());
+    }
+
 
     @GetMapping("/article/{articleId}")
     public ResponseEntity<List<CommentDTO>> getCommentsByArticle(@PathVariable Long articleId) {

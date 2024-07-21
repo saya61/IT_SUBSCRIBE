@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -36,6 +37,10 @@ public class OurArticleService {
     @Autowired
     public OurArticleService(OurArticleRepository ourArticleRepository) {
         this.ourArticleRepository = ourArticleRepository;
+    }
+
+    public Optional<OurArticle> findById(Long id) {
+        return ourArticleRepository.findById(id);
     }
 
     // 카테고리별 페이지네이션된 기사 검색
