@@ -15,7 +15,7 @@ import java.util.Optional;
 import static org.assertj.core.util.DateUtil.now;
 
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
+//@TestPropertySource(locations = "classpath:application-test.properties")
 class MemberRepositoryTest {
     @Autowired
     private MemberRepository memberRepository;
