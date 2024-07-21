@@ -50,6 +50,8 @@ dependencies {
     // 이메일 인증번호 발송에 필요함
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+    // 배포시 JSR 305 어노테이션 누락
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
 tasks.named('test') {

@@ -40,7 +40,7 @@ public class Member {
     private boolean alarm;
 
     @OneToOne
-    @JoinColumn(name = "profileImage_id")
+    @JoinColumn(name = "profile_image_id")
     private ProfileImage profileImage;
 
     @Override
