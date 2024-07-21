@@ -1,4 +1,4 @@
-package com.sw.journal.journalcrawlerpublisher.domain;
+package com.sw.journal.journalcrawlerpublisher.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
