@@ -43,6 +43,8 @@ public class MemberRestController {
     private final MemberService memberService;
     private final ProfileImageService profileImageService;
 
+    // 다민씨 이거 서비스로 바꾸셔야 전문가처럼 보일 것 같아요 죄송해여 제가 너무 피곤해서 왠만하면 제가 바꾸는데
+    // 괜히ㅣ 바꿨다 고장나면 너무 맘이 아파서 남깁니다.
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
@@ -110,7 +112,7 @@ public class MemberRestController {
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
         Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
 
         if (optionalMember.isEmpty()) {
@@ -132,7 +134,14 @@ public class MemberRestController {
         HttpSession session = httpRequest.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
 
-        return ResponseEntity.ok("로그인에 성공했습니다.");
+        // 사용자 정보 반환
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("message", "로그인에 성공했습니다.");
+        userInfo.put("nickname", member.getNickname());
+        userInfo.put("email", member.getEmail());
+        userInfo.put("avatarUrl", member.getProfileImage() != null ? member.getProfileImage().getFileUrl() : null);
+
+        return ResponseEntity.ok(userInfo);
     }
 
     // 로그아웃
@@ -254,7 +263,7 @@ public class MemberRestController {
                 // new password, Confirm password 일치하지 않을 때
                 if (!request.getNewPw().equals(request.getNewPwConfirm())) {
                     return ResponseEntity.badRequest().body("비밀번호가 맞지 않습니다.");
-                // 일치할시 비밀번호가 성공적으로 변경됨
+                    // 일치할시 비밀번호가 성공적으로 변경됨
                 } else {
                     Member Targetmember = member.get();
                     Targetmember.setPassword(passwordEncoder.encode(request.getNewPw()));
@@ -283,11 +292,11 @@ public class MemberRestController {
         Member currentMember = member.get();
         List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMemberId(currentMember);
 
-        // 현재 사용자의 선호 카테고리 목록을 카테고리 id로 매핑하여 반환
+        // 현재 사용자의 선호 카테고리 목록을 카테고리 이름으로 매핑하여 반환
         List<Long> favoriteCategoryNames = userFavoriteCategories.stream()
                 // 각 UserFavoriteCategory 객체에서 Category 객체를 추출
                 .map(UserFavoriteCategory::getCategory)
-                // 각 Category 객체에서 카테고리 id 추출
+                // 각 Category 객체에서 카테고리 이름 추출
                 .map(Category::getId)
                 .toList();
 

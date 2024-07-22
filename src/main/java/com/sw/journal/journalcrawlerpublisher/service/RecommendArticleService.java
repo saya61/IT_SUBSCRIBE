@@ -8,6 +8,9 @@ import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRep
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,12 +35,23 @@ public class RecommendArticleService {
 
     private OurArticleService ourArticleService;
 
-    // 유저가 선호하는 카테고리의 기사 검색
+    public List<OurArticle> findRecentArticles(int limit) {
+        return ourArticleRepository.findAll(PageRequest.of(0, limit)).getContent();
+    }
+
     public List<OurArticle> findByUserFavoriteCategories(Member member) {
         List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(member);
         List<Category> categories = favoriteCategories.stream()
                 .map(UserFavoriteCategory::getCategory)
                 .collect(Collectors.toList());
-        return ourArticleService.findByCategories(categories);
+        return ourArticleRepository.findByCategories(categories);
+    }
+
+    public List<OurArticle> findTopByUserFavoriteCategoriesOrderByPostDateDesc(Member member, int limit) {
+        List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(member);
+        List<Category> categories = favoriteCategories.stream()
+                .map(UserFavoriteCategory::getCategory)
+                .collect(Collectors.toList());
+        return ourArticleRepository.findTopByCategoriesOrderByPostDate(categories, PageRequest.of(0, limit));
     }
 }
