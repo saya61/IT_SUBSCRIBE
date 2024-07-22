@@ -17,8 +17,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
-                .cors(withDefaults()) // CORS 설정 추가
+        http
+                .csrf(csrf -> csrf.disable())
+//                .cors(withDefaults()) // CORS 설정 추가
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
                                 .requestMatchers("/api/members/mypage/**").permitAll()   // 인증 필요
