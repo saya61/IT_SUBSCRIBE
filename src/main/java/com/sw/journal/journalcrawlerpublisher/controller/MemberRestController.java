@@ -3,6 +3,7 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sw.journal.journalcrawlerpublisher.domain.*;
+import com.sw.journal.journalcrawlerpublisher.dto.*;
 import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;

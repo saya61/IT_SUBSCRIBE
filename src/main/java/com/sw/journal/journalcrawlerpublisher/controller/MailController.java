@@ -3,7 +3,7 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
-import com.sw.journal.journalcrawlerpublisher.domain.VerificationDTO;
+import com.sw.journal.journalcrawlerpublisher.dto.VerificationDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.service.MailService;
 import lombok.RequiredArgsConstructor;
