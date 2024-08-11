@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +25,16 @@ public class TagService {
         return tagArticleList.stream()
                 .map(TagArticle::getTag)
                 .collect(Collectors.toList());
+    }
+
+    public Map<Long, List<Tag>> findTagsByArticleIds(List<Long> articleIds) {
+        List<TagArticle> tagArticles = tagArticleRepository.findByArticleIds(articleIds);
+
+        return tagArticles.stream()
+                .collect(Collectors.groupingBy(
+                        tagArticle -> tagArticle.getArticle().getId(),
+                        Collectors.mapping(TagArticle::getTag, Collectors.toList())
+                ));
     }
 
 }

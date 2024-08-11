@@ -208,4 +208,22 @@ public class OurArticleController {
         private List<Long> categoryIds;
         private List<Long> tagCodes;
     }
+
+    @GetMapping("/ash-test")
+    public List<OurArticleWithTagsDTO> getTestRecentArticles() {
+        Pageable pageable = PageRequest.of(0, 18, Sort.by(Sort.Direction.DESC, "postDate"));
+        List<OurArticle> articles = ourArticleService.findAll(pageable).getContent();
+
+        return articles.stream()
+                .map(article -> {
+                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setContent(article.getContent());
+                    dto.setPostDate(article.getPostDate());
+                    dto.setCategory(article.getCategory());
+                    dto.setSource(article.getSource());
+                    return dto;
+                }).collect(Collectors.toList());
+    }
 }
