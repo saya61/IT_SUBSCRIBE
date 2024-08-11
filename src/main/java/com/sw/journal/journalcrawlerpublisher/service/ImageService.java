@@ -13,6 +13,7 @@ import java.util.List;
 public class ImageService {
     private final ImageRepository imageRepository;
 
+    // 기사 이미지 리스트 조회
     public List<Image> findByArticle(OurArticle ourArticle) {
         return imageRepository.findByOurArticle(ourArticle);
     }
