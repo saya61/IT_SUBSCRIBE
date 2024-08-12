@@ -46,50 +46,50 @@ public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
     // 현재 사용하지 않는 코드여서 주석처리함
 //
 //    // n개 태그로 검색
-//    @Query("SELECT ta.article " +
-//            "FROM TagArticle ta " +
-//            "WHERE ta.tag IN :tags " +
-//            "GROUP BY ta.article " +
-//            "HAVING COUNT(DISTINCT ta.tag) = :tagCount")
-//    List<OurArticle> findByTags(@Param("tags") List<Tag> tags, @Param("tagCount") long tagCount);
-//
-//    // 1개 카테고리, 1개 태그로 검색
-//    @Query("SELECT a " +
-//            "FROM OurArticle a " +
-//            "JOIN TagArticle ta " +
-//            "ON a.id = ta.article.id " +
-//            "WHERE a.category = :category " +
-//            "AND ta.tag = :tag")
-//    List<OurArticle> findByCategoryAndTag(@Param("category") Category category, @Param("tag") Tag tag);
-//
-//    // 1개 카테고리, n개 태그로 검색
-//    @Query("SELECT a " +
-//            "FROM OurArticle a " +
-//            "JOIN TagArticle ta " +
-//            "ON a.id = ta.article.id " +
-//            "WHERE a.category = :category " +
-//            "AND ta.tag IN :tags " +
-//            "GROUP BY a " +
-//            "HAVING COUNT(DISTINCT ta.tag) = :tagCount")
-//    List<OurArticle> findByCategoryAndTags(@Param("category") Category category, @Param("tags") List<Tag> tags, @Param("tagCount") long tagCount);
-//
-//    // n개 카테고리, 1개 태그로 검색
-//    @Query("SELECT a " +
-//            "FROM OurArticle a " +
-//            "JOIN TagArticle ta " +
-//            "ON a.id = ta.article.id " +
-//            "WHERE a.category IN :categories " +
-//            "AND ta.tag = :tag")
-//    List<OurArticle> findByCategoriesAndTag(@Param("categories") List<Category> categories, @Param("tag") Tag tag);
-//
-//    // n개 카테고리, n개 태그로 검색
-//    @Query("SELECT a " +
-//            "FROM OurArticle a " +
-//            "JOIN TagArticle ta " +
-//            "ON a.id = ta.article.id " +
-//            "WHERE a.category IN :categories " +
-//            "AND ta.tag IN :tags " +
-//            "GROUP BY a " +
-//            "HAVING COUNT(DISTINCT ta.tag) = :tagCount")
-//    List<OurArticle> findByCategoriesAndTags(@Param("categories") List<Category> categories, @Param("tags") List<Tag> tags, @Param("tagCount") long tagCount);
+    @Query("SELECT ta.article " +
+            "FROM TagArticle ta " +
+            "WHERE ta.tag IN :tags " +
+            "GROUP BY ta.article " +
+            "HAVING COUNT(DISTINCT ta.tag) = :tagCount")
+    List<OurArticle> findByTags(@Param("tags") List<Tag> tags, @Param("tagCount") long tagCount);
+
+    // 1개 카테고리, 1개 태그로 검색
+    @Query("SELECT a " +
+            "FROM OurArticle a " +
+            "JOIN TagArticle ta " +
+            "ON a.id = ta.article.id " +
+            "WHERE a.category = :category " +
+            "AND ta.tag = :tag")
+    List<OurArticle> findByCategoryAndTag(@Param("category") Category category, @Param("tag") Tag tag);
+
+    // 1개 카테고리, n개 태그로 검색
+    @Query("SELECT a " +
+            "FROM OurArticle a " +
+            "JOIN TagArticle ta " +
+            "ON a.id = ta.article.id " +
+            "WHERE a.category = :category " +
+            "AND ta.tag IN :tags " +
+            "GROUP BY a " +
+            "HAVING COUNT(DISTINCT ta.tag) = :tagCount")
+    List<OurArticle> findByCategoryAndTags(@Param("category") Category category, @Param("tags") List<Tag> tags, @Param("tagCount") long tagCount);
+
+    // n개 카테고리, 1개 태그로 검색
+    @Query("SELECT a " +
+            "FROM OurArticle a " +
+            "JOIN TagArticle ta " +
+            "ON a.id = ta.article.id " +
+            "WHERE a.category IN :categories " +
+            "AND ta.tag = :tag")
+    List<OurArticle> findByCategoriesAndTag(@Param("categories") List<Category> categories, @Param("tag") Tag tag);
+
+    // n개 카테고리, n개 태그로 검색
+    @Query("SELECT a " +
+            "FROM OurArticle a " +
+            "JOIN TagArticle ta " +
+            "ON a.id = ta.article.id " +
+            "WHERE a.category IN :categories " +
+            "AND ta.tag IN :tags " +
+            "GROUP BY a " +
+            "HAVING COUNT(DISTINCT ta.tag) = :tagCount")
+    List<OurArticle> findByCategoriesAndTags(@Param("categories") List<Category> categories, @Param("tags") List<Tag> tags, @Param("tagCount") long tagCount);
 }
