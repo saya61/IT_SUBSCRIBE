@@ -10,22 +10,32 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TagService {
-    // 0809 wildmantle : 안쓰이는 변수 제거
+    private final TagRepository tagRepository;
     private final TagArticleRepository tagArticleRepository;
+    private final OurArticleRepository ourArticleRepository;
 
     // 기사에 연결된 태그들을 조회
     public List<Tag> findByArticle(OurArticle article) {
         // 기사에 연결된 TagArticle 리스트 조회
         List<TagArticle> tagArticleList = tagArticleRepository.findByArticle(article);
+        return tagArticleList.stream()
+                .map(TagArticle::getTag)
+                .collect(Collectors.toList());
+    }
 
-        // tagArticleList 의 각 태그를 Tag 객체로 변환 후 리스트로 반환
-        return tagArticleList.stream() // TagArticle 리스트를 스트림으로 변환
-                .map(TagArticle::getTag) // 각 TagArticle 객체에서 Tag 객체 추출
-                .collect(Collectors.toList()); // 추출한 Tag 객체들을 리스트로 수집
+    public Map<Long, List<Tag>> findTagsByArticleIds(List<Long> articleIds) {
+        List<TagArticle> tagArticles = tagArticleRepository.findByArticleIds(articleIds);
+
+        return tagArticles.stream()
+                .collect(Collectors.groupingBy(
+                        tagArticle -> tagArticle.getArticle().getId(),
+                        Collectors.mapping(TagArticle::getTag, Collectors.toList())
+                ));
     }
 }

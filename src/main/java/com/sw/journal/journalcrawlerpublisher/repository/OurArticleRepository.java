@@ -5,6 +5,7 @@ import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,15 +14,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-// wild-mantle 07-08
 @Repository
 public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
 
-
     // 카테고리별 페이지네이션된 기사 검색
     Page<OurArticle> findByCategory(Category category, Pageable pageable);
-
-
 
     // 기사 URL로 기사 검색
     Optional<OurArticle> findBySource(String source);
@@ -33,19 +30,15 @@ public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
     @Query("SELECT a FROM OurArticle a WHERE a.category IN :categories")
     List<OurArticle> findByCategories(@Param("categories") List<Category> categories);
 
-    // 현재 사용하지 않는 코드여서 주석처리함
-//    // n개 카테고리 최신순 검색
-//    @Query("SELECT a FROM OurArticle a WHERE a.category IN :categories ORDER BY a.postDate DESC")
-//    List<OurArticle> findTopByCategoriesOrderByPostDate(@Param("categories") List<Category> categories, Pageable pageable);
-//
+    // n개 카테고리 최신순 검색
+    @Query("SELECT a FROM OurArticle a WHERE a.category IN :categories ORDER BY a.postDate DESC")
+    List<OurArticle> findTopByCategoriesOrderByPostDate(@Param("categories") List<Category> categories, Pageable pageable);
 
     // 태그별 기사 검색
     @Query("SELECT ta.article FROM TagArticle ta WHERE ta.tag = :tag")
     List<OurArticle> findByTag(@Param("tag") Tag tag);
 
-    // 현재 사용하지 않는 코드여서 주석처리함
-//
-//    // n개 태그로 검색
+    // n개 태그로 검색
     @Query("SELECT ta.article " +
             "FROM TagArticle ta " +
             "WHERE ta.tag IN :tags " +
