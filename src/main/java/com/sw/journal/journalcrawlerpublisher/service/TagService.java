@@ -1,9 +1,9 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
-import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
+import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
 import com.sw.journal.journalcrawlerpublisher.domain.TagArticle;
-import com.sw.journal.journalcrawlerpublisher.repository.OurArticleRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.ArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.TagArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 public class TagService {
     private final TagRepository tagRepository;
     private final TagArticleRepository tagArticleRepository;
-    private final OurArticleRepository ourArticleRepository;
+    private final ArticleRepository articleRepository;
 
     // 기사에 연결된 태그들을 조회
-    public List<Tag> findByArticle(OurArticle article) {
+    public List<Tag> findByArticle(Article article) {
         // 기사에 연결된 TagArticle 리스트 조회
         List<TagArticle> tagArticleList = tagArticleRepository.findByArticle(article);
         return tagArticleList.stream()

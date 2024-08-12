@@ -1,7 +1,7 @@
 package com.sw.journal.journalcrawlerpublisher.dto;
 
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
-import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
+import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
 import com.sw.journal.journalcrawlerpublisher.domain.Image;
 
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 // 기사를 우리 사이트에 게시할 때 필요한 데이터를 전송하기 위한 DTO
-public class OurArticleWithTagsDTO {
+public class ArticleWithTagsDTO {
     private Long id; // 기사 id
     private String title; // 기사 제목
     private String content; // 기사 내용
@@ -27,8 +27,8 @@ public class OurArticleWithTagsDTO {
     private List<Tag> tags; // 기사 태그
     private List<String> imgUrls; // 기사 이미지 URL 리스트
 
-    public static OurArticleWithTagsDTO from(OurArticle article, TagService tagService, ImageService imageService) {
-        OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+    public static ArticleWithTagsDTO from(Article article, TagService tagService, ImageService imageService) {
+        ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
         dto.setId(article.getId());
         dto.setTitle(article.getTitle());
         dto.setContent(article.getContent());
