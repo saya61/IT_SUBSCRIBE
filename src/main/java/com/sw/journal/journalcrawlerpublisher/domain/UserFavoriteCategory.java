@@ -10,8 +10,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserFavoriteCategory {
-    @EmbeddedId
-    private UserFavoriteCategoryId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne
     @MapsId("memberId")

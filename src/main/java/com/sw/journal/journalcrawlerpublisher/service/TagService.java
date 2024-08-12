@@ -1,6 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
-import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
+import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
 import com.sw.journal.journalcrawlerpublisher.domain.TagArticle;
 import com.sw.journal.journalcrawlerpublisher.repository.OurArticleRepository;
@@ -21,7 +21,7 @@ public class TagService {
     private final OurArticleRepository ourArticleRepository;
 
     // 기사에 연결된 태그들을 조회
-    public List<Tag> findByArticle(OurArticle article) {
+    public List<Tag> findByArticle(Article article) {
         // 기사에 연결된 TagArticle 리스트 조회
         List<TagArticle> tagArticleList = tagArticleRepository.findByArticle(article);
         return tagArticleList.stream()

@@ -1,7 +1,7 @@
 package com.sw.journal.journalcrawlerpublisher.dto;
 
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
-import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
+import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
 import com.sw.journal.journalcrawlerpublisher.domain.Image;
 
@@ -27,7 +27,7 @@ public class OurArticleWithTagsDTO {
     private List<Tag> tags; // 기사 태그
     private List<String> imgUrls; // 기사 이미지 URL 리스트
 
-    public static OurArticleWithTagsDTO from(OurArticle article, TagService tagService, ImageService imageService) {
+    public static OurArticleWithTagsDTO from(Article article, TagService tagService, ImageService imageService) {
         OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
         dto.setId(article.getId());
         dto.setTitle(article.getTitle());

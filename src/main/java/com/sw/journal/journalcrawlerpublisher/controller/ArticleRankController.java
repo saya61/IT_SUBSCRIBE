@@ -1,14 +1,12 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
-import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
+import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.dto.OurArticleWithTagsDTO;
-import com.sw.journal.journalcrawlerpublisher.domain.Image;
 import com.sw.journal.journalcrawlerpublisher.service.ArticleRankService;
 import com.sw.journal.journalcrawlerpublisher.service.ImageService;
 import com.sw.journal.journalcrawlerpublisher.service.OurArticleService;
 import com.sw.journal.journalcrawlerpublisher.service.TagService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,11 +47,11 @@ public class ArticleRankController {
         return topTenArticleIdsLong.stream()
                 .map(id -> {
                     // 기사 ID로 기사 조회
-                    Optional<OurArticle> articleOptional = ourArticleService.findById(id);
+                    Optional<Article> articleOptional = ourArticleService.findById(id);
                     // 기사가 존재할 경우
                     if (articleOptional.isPresent()) {
                         // 기사 정보를 가져옴
-                        OurArticle article = articleOptional.get();
+                        Article article = articleOptional.get();
                         return OurArticleWithTagsDTO.from(article, tagService, imageService);
                     } else {
                         return null;

@@ -8,10 +8,7 @@ import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRep
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,14 +31,14 @@ public class RecommendArticleService {
     private final OurArticleService ourArticleService;
 
     // 최신 기사를 주어진 개수만큼 조회
-    public List<OurArticle> findRecentArticles(int limit) {
+    public List<Article> findRecentArticles(int limit) {
         // PageRequest.of(0, limit)을 통해 첫 번째 페이지에서 주어진 개수만큼 기사 조회
         // 조회된 결과에서 기사 리스트 반환
         return ourArticleRepository.findAll(PageRequest.of(0, limit)).getContent();
     }
 
     // 사용자 선호 카테고리의 기사 조회
-    public List<OurArticle> findByUserFavoriteCategories(Member member) {
+    public List<Article> findByUserFavoriteCategories(Member member) {
         // 사용자 선호 카테고리 리스트 조회
         List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(member);
         // 선호 카테고리 리스트에서 카테고리 객체만 추출하여 리스트로 변환
@@ -53,7 +50,7 @@ public class RecommendArticleService {
     }
 
     // 사용자 선호 카테고리의 기사 중에서 최신 기사를 주어진 개수만큼 조회
-    public List<OurArticle> findTopByUserFavoriteCategoriesOrderByPostDateDesc(Member member, int limit) {
+    public List<Article> findTopByUserFavoriteCategoriesOrderByPostDateDesc(Member member, int limit) {
         // 사용자 선호 카테고리 리스트 조회
         List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(member);
         // 선호 카테고리 리스트에서 카테고리 객체만 추출하여 리스트로 변환

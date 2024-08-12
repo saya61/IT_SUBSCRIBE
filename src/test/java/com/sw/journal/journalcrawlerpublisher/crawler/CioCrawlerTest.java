@@ -75,16 +75,16 @@ class CioCrawlerTest {
             }
 
             // 3. 기사 객체 생성 및 저장
-            OurArticle ourArticle = new OurArticle();
-            ourArticle.setSource(articleUrl);   // 기사 Url 저장
+            Article article = new Article();
+            article.setSource(articleUrl);   // 기사 Url 저장
             // 카테고리 찾기
-            ourArticle.setCategory(category);   // 기사 카테고리 설정 위에서 유무 검사 후 저장까지 완료했으므로 .get()사용
-            ourArticle.setTitle(articleTitle);  // 기사 제목
-            ourArticle.setContent(articleContent);  // 기사 내용
-            ourArticle.setPostDate(LocalDateTime.now());  // 게시 날짜
-            OurArticle savedArticle;
+            article.setCategory(category);   // 기사 카테고리 설정 위에서 유무 검사 후 저장까지 완료했으므로 .get()사용
+            article.setTitle(articleTitle);  // 기사 제목
+            article.setContent(articleContent);  // 기사 내용
+            article.setPostDate(LocalDateTime.now());  // 게시 날짜
+            Article savedArticle;
             try {
-                savedArticle = ourArticleRepository.save(ourArticle);
+                savedArticle = ourArticleRepository.save(article);
             } catch (DataIntegrityViolationException ex) {
                 System.out.println(ex.getMessage());
                 return false;
@@ -95,7 +95,7 @@ class CioCrawlerTest {
             if(!imgUrl.isEmpty()) {
                 Image image = new Image();
                 image.setImgUrl("https://www.ciokorea.com" + imgUrl);
-                image.setOurArticle(savedArticle);
+                image.setArticle(savedArticle);
                 imageRepository.save(image);
             }
 
@@ -124,7 +124,7 @@ class CioCrawlerTest {
                 Random random = new Random();
                 ArticleRank articleRank = new ArticleRank();
                 articleRank.setArticle(savedArticle);
-                articleRank.setCount((long)0);
+                articleRank.setViews((long)0);
                 articleRank.setIsActive(true);
                 try {
                     articleRankRepository.save(articleRank);

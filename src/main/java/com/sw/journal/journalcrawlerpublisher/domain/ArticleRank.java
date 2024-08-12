@@ -15,10 +15,10 @@ public class ArticleRank {
 
     @ManyToOne
     @JoinColumn(name = "article_id", nullable = false, unique = true)
-    private OurArticle article;
+    private Article article;
 
     @Column(nullable = false)
-    private Long count;
+    private Long views;
 
     @Column(nullable = false)
     private Boolean isActive;

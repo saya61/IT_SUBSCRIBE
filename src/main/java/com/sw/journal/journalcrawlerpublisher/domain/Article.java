@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "our_article")
 @Getter
 @Setter
-public class OurArticle {
+public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,7 +34,7 @@ public class OurArticle {
 
     @Override
     public String toString() {
-        return "OurArticle{" +
+        return "Article{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +

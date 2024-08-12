@@ -3,7 +3,6 @@ package com.sw.journal.journalcrawlerpublisher.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Getter @Setter
@@ -18,6 +17,6 @@ public class Image {
 
     @ManyToOne
     @JoinColumn(name = "ourArticle_id", nullable = false)
-    private OurArticle ourArticle;
+    private Article article;
 
 }
