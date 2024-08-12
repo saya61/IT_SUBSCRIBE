@@ -42,20 +42,8 @@ public class OurArticleController {
         Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
 
         List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
-                .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
-                    dto.setId(article.getId());
-                    dto.setTitle(article.getTitle());
-                    dto.setContent(article.getContent());
-                    dto.setPostDate(article.getPostDate());
-                    dto.setCategory(article.getCategory());
-                    dto.setSource(article.getSource());
-                    dto.setTags(tagService.findByArticle(article));
-                    dto.setImgUrls(imageService.findByArticle(article).stream()
-                            .map(Image::getImgUrl)
-                            .collect(Collectors.toList()));
-                    return dto;
-                }).collect(Collectors.toList());
+                .map(article -> OurArticleWithTagsDTO.from(article, tagService, imageService))
+                .collect(Collectors.toList());
 
         return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
     }
@@ -72,20 +60,8 @@ public class OurArticleController {
         Page<OurArticle> articlePage = ourArticleService.findByCategory(category, pageable);
 
         List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
-                .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
-                    dto.setId(article.getId());
-                    dto.setTitle(article.getTitle());
-                    dto.setContent(article.getContent());
-                    dto.setPostDate(article.getPostDate());
-                    dto.setCategory(article.getCategory());
-                    dto.setSource(article.getSource());
-                    dto.setTags(tagService.findByArticle(article));
-                    dto.setImgUrls(imageService.findByArticle(article).stream()
-                            .map(Image::getImgUrl)
-                            .collect(Collectors.toList()));
-                    return dto;
-                }).collect(Collectors.toList());
+                .map(article -> OurArticleWithTagsDTO.from(article, tagService, imageService))
+                .collect(Collectors.toList());
 
         return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
     }
@@ -97,20 +73,8 @@ public class OurArticleController {
         List<OurArticle> articles = ourArticleService.findAll(pageable).getContent();
 
         return articles.stream()
-                .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
-                    dto.setId(article.getId());
-                    dto.setTitle(article.getTitle());
-                    dto.setContent(article.getContent());
-                    dto.setPostDate(article.getPostDate());
-                    dto.setCategory(article.getCategory());
-                    dto.setSource(article.getSource());
-                    dto.setTags(tagService.findByArticle(article));
-                    dto.setImgUrls(imageService.findByArticle(article).stream()
-                            .map(Image::getImgUrl)
-                            .collect(Collectors.toList()));
-                    return dto;
-                }).collect(Collectors.toList());
+                .map(article -> OurArticleWithTagsDTO.from(article, tagService, imageService))
+                .collect(Collectors.toList());
     }
 
 
@@ -120,17 +84,17 @@ public class OurArticleController {
         return ResponseEntity.ok(comments);
     }
 
-
-    // 카테고리 n개로 검색
-    @PostMapping("/categories")
-    public List<OurArticle> getArticlesByCategories(@RequestBody List<Long> categoryIds) {
-        List<Category> categories = categoryIds.stream().map(id -> {
-            Category category = new Category();
-            category.setId(id);
-            return category;
-        }).toList();
-        return ourArticleService.findByCategories(categories);
-    }
+    // 현재 사용 안하는 코드임으로 주석처리함
+//    // 카테고리 n개로 검색
+//    @PostMapping("/categories")
+//    public List<OurArticle> getArticlesByCategories(@RequestBody List<Long> categoryIds) {
+//        List<Category> categories = categoryIds.stream().map(id -> {
+//            Category category = new Category();
+//            category.setId(id);
+//            return category;
+//        }).toList();
+//        return ourArticleService.findByCategories(categories);
+//    }
 
     // 태그 1개로 기사 검색
     @GetMapping("/tag/{tagCode}")
@@ -140,68 +104,69 @@ public class OurArticleController {
         return ourArticleService.findByTag(tag);
     }
 
-    // n개 태그로 검색
-    @PostMapping("/tags")
-    public List<OurArticle> getArticlesByTags(@RequestBody List<Long> tagCodes) {
-        List<Tag> tags = tagCodes.stream().map(code -> {
-            Tag tag = new Tag();
-            tag.setId(code);
-            return tag;
-        }).toList();
-        return ourArticleService.findByTags(tags);
-    }
-
-    // 카테고리 1개, 태그 1개로 기사 검색
-    @GetMapping("/category/{categoryId}/tag/{tagCode}")
-    public List<OurArticle> getArticlesByCategoryAndTag(@PathVariable Long categoryId, @PathVariable Long tagCode) {
-        Category category = new Category();
-        category.setId(categoryId);
-        Tag tag = new Tag();
-        tag.setId(tagCode);
-        return ourArticleService.findByCategoryAndTag(category, tag);
-    }
-
-    // 1개 카테고리, n개 태그로 검색
-    @PostMapping("/category/{categoryId}/tags")
-    public List<OurArticle> getArticlesByCategoryAndTags(@PathVariable Long categoryId, @RequestBody List<Long> tagCodes) {
-        Category category = new Category();
-        category.setId(categoryId);
-        List<Tag> tags = tagCodes.stream().map(code -> {
-            Tag tag = new Tag();
-            tag.setId(code);
-            return tag;
-        }).toList();
-        return ourArticleService.findByCategoryAndTags(category, tags);
-    }
-
-    // n개 카테고리, 1개 태그로 검색
-    @PostMapping("/categories/tag/{tagCode}")
-    public List<OurArticle> getArticlesByCategoriesAndTag(@RequestBody List<Long> categoryIds, @PathVariable Long tagCode) {
-        List<Category> categories = categoryIds.stream().map(id -> {
-            Category category = new Category();
-            category.setId(id);
-            return category;
-        }).toList();
-        Tag tag = new Tag();
-        tag.setId(tagCode);
-        return ourArticleService.findByCategoriesAndTag(categories, tag);
-    }
-
-    // n개 카테고리, n개 태그로 검색
-    @PostMapping("/categories/tags")
-    public List<OurArticle> getArticlesByCategoriesAndTags(@RequestBody CategoryTagRequest request) {
-        List<Category> categories = request.getCategoryIds().stream().map(id -> {
-            Category category = new Category();
-            category.setId(id);
-            return category;
-        }).toList();
-        List<Tag> tags = request.getTagCodes().stream().map(code -> {
-            Tag tag = new Tag();
-            tag.setId(code);
-            return tag;
-        }).toList();
-        return ourArticleService.findByCategoriesAndTags(categories, tags);
-    }
+    // 현재 사용되지 않고있는 코드임으로 주석처리함
+//    // n개 태그로 검색
+//    @PostMapping("/tags")
+//    public List<OurArticle> getArticlesByTags(@RequestBody List<Long> tagCodes) {
+//        List<Tag> tags = tagCodes.stream().map(code -> {
+//            Tag tag = new Tag();
+//            tag.setId(code);
+//            return tag;
+//        }).toList();
+//        return ourArticleService.findByTags(tags);
+//    }
+//
+//    // 카테고리 1개, 태그 1개로 기사 검색
+//    @GetMapping("/category/{categoryId}/tag/{tagCode}")
+//    public List<OurArticle> getArticlesByCategoryAndTag(@PathVariable Long categoryId, @PathVariable Long tagCode) {
+//        Category category = new Category();
+//        category.setId(categoryId);
+//        Tag tag = new Tag();
+//        tag.setId(tagCode);
+//        return ourArticleService.findByCategoryAndTag(category, tag);
+//    }
+//
+//    // 1개 카테고리, n개 태그로 검색
+//    @PostMapping("/category/{categoryId}/tags")
+//    public List<OurArticle> getArticlesByCategoryAndTags(@PathVariable Long categoryId, @RequestBody List<Long> tagCodes) {
+//        Category category = new Category();
+//        category.setId(categoryId);
+//        List<Tag> tags = tagCodes.stream().map(code -> {
+//            Tag tag = new Tag();
+//            tag.setId(code);
+//            return tag;
+//        }).toList();
+//        return ourArticleService.findByCategoryAndTags(category, tags);
+//    }
+//
+//    // n개 카테고리, 1개 태그로 검색
+//    @PostMapping("/categories/tag/{tagCode}")
+//    public List<OurArticle> getArticlesByCategoriesAndTag(@RequestBody List<Long> categoryIds, @PathVariable Long tagCode) {
+//        List<Category> categories = categoryIds.stream().map(id -> {
+//            Category category = new Category();
+//            category.setId(id);
+//            return category;
+//        }).toList();
+//        Tag tag = new Tag();
+//        tag.setId(tagCode);
+//        return ourArticleService.findByCategoriesAndTag(categories, tag);
+//    }
+//
+//    // n개 카테고리, n개 태그로 검색
+//    @PostMapping("/categories/tags")
+//    public List<OurArticle> getArticlesByCategoriesAndTags(@RequestBody CategoryTagRequest request) {
+//        List<Category> categories = request.getCategoryIds().stream().map(id -> {
+//            Category category = new Category();
+//            category.setId(id);
+//            return category;
+//        }).toList();
+//        List<Tag> tags = request.getTagCodes().stream().map(code -> {
+//            Tag tag = new Tag();
+//            tag.setId(code);
+//            return tag;
+//        }).toList();
+//        return ourArticleService.findByCategoriesAndTags(categories, tags);
+//    }
 
     @Getter @Setter
     public static class CategoryTagRequest {

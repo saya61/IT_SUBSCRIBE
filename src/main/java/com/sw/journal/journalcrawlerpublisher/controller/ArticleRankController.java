@@ -7,26 +7,26 @@ import com.sw.journal.journalcrawlerpublisher.service.ArticleRankService;
 import com.sw.journal.journalcrawlerpublisher.service.ImageService;
 import com.sw.journal.journalcrawlerpublisher.service.OurArticleService;
 import com.sw.journal.journalcrawlerpublisher.service.TagService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/rank")
 public class ArticleRankController {
 
-    @Autowired
-    private ArticleRankService articleRankService;
-    @Autowired
-    private OurArticleService ourArticleService;
-    @Autowired
-    private TagService tagService;
-    @Autowired
-    private ImageService imageService;
+    // 필드 주입에서 생성자 주입으로 변경
+    private final ArticleRankService articleRankService;
+    private final OurArticleService ourArticleService;
+    private final TagService tagService;
+    private final ImageService imageService;
 
 
 
@@ -47,23 +47,12 @@ public class ArticleRankController {
                     Optional<OurArticle> articleOptional = ourArticleService.findById(id);
                     if (articleOptional.isPresent()) {
                         OurArticle article = articleOptional.get();
-                        OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
-                        dto.setId(article.getId());
-                        dto.setTitle(article.getTitle());
-                        dto.setContent(article.getContent());
-                        dto.setPostDate(article.getPostDate());
-                        dto.setCategory(article.getCategory());
-                        dto.setSource(article.getSource());
-                        dto.setTags(tagService.findByArticle(article));
-                        dto.setImgUrls(imageService.findByArticle(article).stream()
-                                .map(Image::getImgUrl)
-                                .collect(Collectors.toList()));
-                        return dto;
+                        return OurArticleWithTagsDTO.from(article, tagService, imageService);
                     } else {
                         return null;
                     }
                 })
-                .filter(article -> article != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 }

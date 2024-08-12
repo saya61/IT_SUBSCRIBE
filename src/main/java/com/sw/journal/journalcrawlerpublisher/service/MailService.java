@@ -45,18 +45,21 @@ public class MailService {
             message.setFrom(senderEmail);
             message.setRecipients(MimeMessage.RecipientType.TO, email);
             message.setSubject("[IT SUBSCRIBE] Verify Your Email Address");
-            String body = "";
-            body += "<h1>" + "Thank you for signing up with IT SUBSCRIBE. " + "</h1>";
-            body += "<h1>" + "To complete your registration, please verify your email address by using the verification code below:" + "</h1>";
-            body += "<br>";
-            body += "<h1>" + "Your Verification Code: "+ code + "</h1>";
-            body += "<br>";
-            body += "<h3>" + "Please enter this code in the provided field on our website to confirm your email address." + "</h3>";
-            body += "<h3>" + "If you did not sign up for an ExampleCo account, please ignore this email." + "</h3>";
-            body += "<br>";
-            body += "<h3>" + "Thank you," + "</h3>";
-            body += "<h3>" + "The IT SUBSCRIBE Team" + "</h3>";
-            message.setText(body,"UTF-8", "html");
+
+            // 0809 - wildmantle : StringBuilder를 사용하여 문자열 생성
+            StringBuilder body = new StringBuilder();
+            body.append("<h1>").append("Thank you for signing up with IT SUBSCRIBE. ").append("</h1>");
+            body.append("<h1>").append("To complete your registration, please verify your email address by using the verification code below:").append("</h1>");
+            body.append("<br>");
+            body.append("<h1>").append("Your Verification Code: ").append(code).append("</h1>");
+            body.append("<br>");
+            body.append("<h3>").append("Please enter this code in the provided field on our website to confirm your email address.").append("</h3>");
+            body.append("<h3>").append("If you did not sign up for an ExampleCo account, please ignore this email.").append("</h3>");
+            body.append("<br>");
+            body.append("<h3>").append("Thank you,").append("</h3>");
+            body.append("<h3>").append("The IT SUBSCRIBE Team").append("</h3>");
+
+            message.setText(body.toString(), "UTF-8", "html");
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -65,8 +68,9 @@ public class MailService {
     }
 
     // 메일 송신 메서드
-    public String sendMail(String mail) {
-        MimeMessage message = createMail(mail);
+    // 0809 - wildmantle : 매개변수 네이밍 컨벤션 통일
+    public String sendMail(String email) {
+        MimeMessage message = createMail(email);
         javaMailSender.send(message);
 
         return code;

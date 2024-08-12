@@ -3,7 +3,7 @@ package com.sw.journal.journalcrawlerpublisher.service;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.domain.ProfileImage;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
-import com.sw.journal.journalcrawlerpublisher.repository.ProfileImageRepostiory;
+import com.sw.journal.journalcrawlerpublisher.repository.ProfileImageRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 @Service
 @RequiredArgsConstructor
 public class ProfileImageService {
-    private final ProfileImageRepostiory profileImageRepository;
+    private final ProfileImageRepository profileImageRepository;
     private final MemberRepository memberRepository;
 
     // 업로드 경로를 application.properties에서 가져옴

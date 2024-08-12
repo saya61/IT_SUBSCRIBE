@@ -6,6 +6,7 @@ import com.sw.journal.journalcrawlerpublisher.repository.OurArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.TagRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,22 +19,19 @@ import java.util.stream.Collectors;
 
 // wild-mantle 2024-07-08
 @Getter @Setter
+@RequiredArgsConstructor
 @Service
 public class RecommendArticleService {
+    // 필드 주입에서 생성자 주입으로 변경
+    private final OurArticleRepository ourArticleRepository;
 
-    @Autowired
-    private OurArticleRepository ourArticleRepository;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final TagRepository tagRepository;
 
-    @Autowired
-    private TagRepository tagRepository;
+    private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
 
-    @Autowired
-    private UserFavoriteCategoryRepository userFavoriteCategoryRepository;
-
-    private OurArticleService ourArticleService;
+    private final OurArticleService ourArticleService;
 
     public List<OurArticle> findRecentArticles(int limit) {
         return ourArticleRepository.findAll(PageRequest.of(0, limit)).getContent();
@@ -47,11 +45,12 @@ public class RecommendArticleService {
         return ourArticleRepository.findByCategories(categories);
     }
 
-    public List<OurArticle> findTopByUserFavoriteCategoriesOrderByPostDateDesc(Member member, int limit) {
-        List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(member);
-        List<Category> categories = favoriteCategories.stream()
-                .map(UserFavoriteCategory::getCategory)
-                .collect(Collectors.toList());
-        return ourArticleRepository.findTopByCategoriesOrderByPostDate(categories, PageRequest.of(0, limit));
-    }
+    // 0809 wildmantle : 유저 정보 기반 기사 추천
+//    public List<OurArticle> findTopByUserFavoriteCategoriesOrderByPostDateDesc(Member member, int limit) {
+//        List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(member);
+//        List<Category> categories = favoriteCategories.stream()
+//                .map(UserFavoriteCategory::getCategory)
+//                .collect(Collectors.toList());
+//        return ourArticleRepository.findTopByCategoriesOrderByPostDate(categories, PageRequest.of(0, limit));
+//    }
 }

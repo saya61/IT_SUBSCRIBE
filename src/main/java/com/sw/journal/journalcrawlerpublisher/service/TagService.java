@@ -15,9 +15,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TagService {
-    private final TagRepository tagRepository;
+    // 0809 wildmantle : 안쓰이는 변수 제거
     private final TagArticleRepository tagArticleRepository;
-    private final OurArticleRepository ourArticleRepository;
 
     public List<Tag> findByArticle(OurArticle article) {
         List<TagArticle> tagArticleList = tagArticleRepository.findByArticle(article);
