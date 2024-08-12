@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/recommend-article")
 public class RecommendedArticleController {
 
@@ -30,14 +31,7 @@ public class RecommendedArticleController {
     private final ImageService imageService;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
 
-    @Autowired
-    public RecommendedArticleController(RecommendArticleService recommendArticleService, MemberService memberService, TagService tagService, ImageService imageService, UserFavoriteCategoryRepository userFavoriteCategoryRepository) {
-        this.recommendArticleService = recommendArticleService;
-        this.memberService = memberService;
-        this.tagService = tagService;
-        this.imageService = imageService;
-        this.userFavoriteCategoryRepository = userFavoriteCategoryRepository;
-    }
+    // 0809 wildmantle : 생성자 삭제 후 , @RequiredArgsConstructor 로 대체
 
 
 //    // 유저 선호 카테고리 기사 검색

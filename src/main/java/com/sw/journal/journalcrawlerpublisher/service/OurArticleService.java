@@ -8,6 +8,7 @@ import com.sw.journal.journalcrawlerpublisher.repository.OurArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.TagArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.TagRepository;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,25 +20,18 @@ import java.util.Optional;
 
 @Getter
 @Setter
+@RequiredArgsConstructor
 @Service
 public class OurArticleService {
 
-    @Autowired
-    private OurArticleRepository ourArticleRepository;
+    // 0809 wildmantle : 필드 주입에서 생성자 주입으로 변경
+    private final OurArticleRepository ourArticleRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
-    private TagRepository tagRepository;
+    private final TagRepository tagRepository;
 
-    @Autowired
-    private TagArticleRepository tagArticleRepository;
-
-    @Autowired
-    public OurArticleService(OurArticleRepository ourArticleRepository) {
-        this.ourArticleRepository = ourArticleRepository;
-    }
+    private final TagArticleRepository tagArticleRepository;
 
     public Optional<OurArticle> findById(Long id) {
         return ourArticleRepository.findById(id);
@@ -67,29 +61,31 @@ public class OurArticleService {
         return ourArticleRepository.findByTag(tag);
     }
 
-    // n개 태그로 검색
-    public List<OurArticle> findByTags(List<Tag> tags) {
-        return ourArticleRepository.findByTags(tags, tags.size());
-    }
-
-    // 1개 카테고리, 1개 태그로 검색
-    public List<OurArticle> findByCategoryAndTag(Category category, Tag tag) {
-        return ourArticleRepository.findByCategoryAndTag(category, tag);
-    }
-
-    // 1개 카테고리, n개 태그로 검색
-    public List<OurArticle> findByCategoryAndTags(Category category, List<Tag> tags) {
-        return ourArticleRepository.findByCategoryAndTags(category, tags, tags.size());
-    }
-
-    // n개 카테고리, 1개 태그로 검색
-    public List<OurArticle> findByCategoriesAndTag(List<Category> categories, Tag tag) {
-        return ourArticleRepository.findByCategoriesAndTag(categories, tag);
-    }
-
-    // n개 카테고리, n개 태그로 검색
-    public List<OurArticle> findByCategoriesAndTags(List<Category> categories, List<Tag> tags) {
-        return ourArticleRepository.findByCategoriesAndTags(categories, tags, tags.size());
-    }
+    // 0809 wildmantle : 현재 사용되지 않고있는 코드임으로 주석처리함
+//
+//    // n개 태그로 검색
+//    public List<OurArticle> findByTags(List<Tag> tags) {
+//        return ourArticleRepository.findByTags(tags, tags.size());
+//    }
+//
+//    // 1개 카테고리, 1개 태그로 검색
+//    public List<OurArticle> findByCategoryAndTag(Category category, Tag tag) {
+//        return ourArticleRepository.findByCategoryAndTag(category, tag);
+//    }
+//
+//    // 1개 카테고리, n개 태그로 검색
+//    public List<OurArticle> findByCategoryAndTags(Category category, List<Tag> tags) {
+//        return ourArticleRepository.findByCategoryAndTags(category, tags, tags.size());
+//    }
+//
+//    // n개 카테고리, 1개 태그로 검색
+//    public List<OurArticle> findByCategoriesAndTag(List<Category> categories, Tag tag) {
+//        return ourArticleRepository.findByCategoriesAndTag(categories, tag);
+//    }
+//
+//    // n개 카테고리, n개 태그로 검색
+//    public List<OurArticle> findByCategoriesAndTags(List<Category> categories, List<Tag> tags) {
+//        return ourArticleRepository.findByCategoriesAndTags(categories, tags, tags.size());
+//    }
 
 }
