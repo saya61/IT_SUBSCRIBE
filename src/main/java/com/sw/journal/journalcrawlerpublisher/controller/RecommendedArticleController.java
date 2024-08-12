@@ -73,50 +73,50 @@ public class RecommendedArticleController {
 //    }
 
     // 유저 선호 카테고리 기반 최근 12개 기사 가져오기
+//    @GetMapping("/recent")
+//    public ResponseEntity<List<OurArticleWithTagsDTO>> getArticlesByUserFavoriteCategories() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentUsername = authentication.getName();
+//        Optional<Member> member = memberService.findByUsername(currentUsername);
+//
+//        if (!member.isPresent()) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//
+//        Member foundMember = member.get();
+//        List<OurArticle> articles;
+//
+//        // 유저 선호 카테고리가 있는지 확인
+//        List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(foundMember);
+//        if (favoriteCategories.isEmpty()) {
+//            // 선호 카테고리가 없을 경우 최근 기사 반환
+//            articles = recommendArticleService.findRecentArticles(12);
+//        } else {
+//            // 선호 카테고리가 있을 경우 해당 카테고리의 기사 반환
+//            articles = recommendArticleService.findByUserFavoriteCategories(foundMember);
+//        }
+//
+//        List<OurArticleWithTagsDTO> articleDTOs = articles.stream()
+//                .map(article -> {
+//                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+//                    dto.setId(article.getId());
+//                    dto.setTitle(article.getTitle());
+//                    dto.setContent(article.getContent());
+//                    dto.setPostDate(article.getPostDate());
+//                    dto.setCategory(article.getCategory());
+//                    dto.setSource(article.getSource());
+//                    dto.setTags(tagService.findByArticle(article));
+//                    dto.setImgUrls(imageService.findByArticle(article).stream()
+//                            .map(Image::getImgUrl)
+//                            .collect(Collectors.toList()));
+//                    return dto;
+//                }).collect(Collectors.toList());
+//
+//        return ResponseEntity.ok(articleDTOs);
+//    }
+
+
     @GetMapping("/recent")
-    public ResponseEntity<List<OurArticleWithTagsDTO>> getArticlesByUserFavoriteCategories() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        Optional<Member> member = memberService.findByUsername(currentUsername);
-
-        if (!member.isPresent()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        Member foundMember = member.get();
-        List<OurArticle> articles;
-
-        // 유저 선호 카테고리가 있는지 확인
-        List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(foundMember);
-        if (favoriteCategories.isEmpty()) {
-            // 선호 카테고리가 없을 경우 최근 기사 반환
-            articles = recommendArticleService.findRecentArticles(12);
-        } else {
-            // 선호 카테고리가 있을 경우 해당 카테고리의 기사 반환
-            articles = recommendArticleService.findByUserFavoriteCategories(foundMember);
-        }
-
-        List<OurArticleWithTagsDTO> articleDTOs = articles.stream()
-                .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
-                    dto.setId(article.getId());
-                    dto.setTitle(article.getTitle());
-                    dto.setContent(article.getContent());
-                    dto.setPostDate(article.getPostDate());
-                    dto.setCategory(article.getCategory());
-                    dto.setSource(article.getSource());
-                    dto.setTags(tagService.findByArticle(article));
-                    dto.setImgUrls(imageService.findByArticle(article).stream()
-                            .map(Image::getImgUrl)
-                            .collect(Collectors.toList()));
-                    return dto;
-                }).collect(Collectors.toList());
-
-        return ResponseEntity.ok(articleDTOs);
-    }
-
-
-    @GetMapping("/recent-ash-test")
     public ResponseEntity<List<OurArticleWithTagsDTO>> refinedGetArticlesByUserFavoriteCategories() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
