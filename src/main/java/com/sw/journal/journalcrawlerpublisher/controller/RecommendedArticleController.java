@@ -31,7 +31,7 @@ public class RecommendedArticleController {
     private final ImageService imageService;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
 
-    // 0809 wildmantle : 생성자 삭제 후 , @RequiredArgsConstructor 로 대체
+    // 생성자 삭제 후 , @RequiredArgsConstructor 로 대체
 
 
 //    // 유저 선호 카테고리 기사 검색

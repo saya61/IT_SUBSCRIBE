@@ -84,17 +84,17 @@ public class OurArticleController {
         return ResponseEntity.ok(comments);
     }
 
-
-    // 카테고리 n개로 검색
-    @PostMapping("/categories")
-    public List<OurArticle> getArticlesByCategories(@RequestBody List<Long> categoryIds) {
-        List<Category> categories = categoryIds.stream().map(id -> {
-            Category category = new Category();
-            category.setId(id);
-            return category;
-        }).toList();
-        return ourArticleService.findByCategories(categories);
-    }
+    // 현재 사용 안하는 코드임으로 주석처리함
+//    // 카테고리 n개로 검색
+//    @PostMapping("/categories")
+//    public List<OurArticle> getArticlesByCategories(@RequestBody List<Long> categoryIds) {
+//        List<Category> categories = categoryIds.stream().map(id -> {
+//            Category category = new Category();
+//            category.setId(id);
+//            return category;
+//        }).toList();
+//        return ourArticleService.findByCategories(categories);
+//    }
 
     // 태그 1개로 기사 검색
     @GetMapping("/tag/{tagCode}")
@@ -104,7 +104,7 @@ public class OurArticleController {
         return ourArticleService.findByTag(tag);
     }
 
-    // 0809 wildmantle : 현재 사용되지 않고있는 코드임으로 주석처리함
+    // 현재 사용되지 않고있는 코드임으로 주석처리함
 //    // n개 태그로 검색
 //    @PostMapping("/tags")
 //    public List<OurArticle> getArticlesByTags(@RequestBody List<Long> tagCodes) {

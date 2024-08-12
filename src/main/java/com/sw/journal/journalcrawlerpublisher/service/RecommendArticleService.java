@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class RecommendArticleService {
-    // 0809 wildmantle : 필드 주입에서 생성자 주입으로 변경
+    // 필드 주입에서 생성자 주입으로 변경
     private final OurArticleRepository ourArticleRepository;
 
     private final CategoryRepository categoryRepository;

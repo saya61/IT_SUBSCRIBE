@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/rank")
 public class ArticleRankController {
 
-    // 0808 wildmantle 필드 주입에서 생성자 주입으로 변경
+    // 필드 주입에서 생성자 주입으로 변경
     private final ArticleRankService articleRankService;
     private final OurArticleService ourArticleService;
     private final TagService tagService;

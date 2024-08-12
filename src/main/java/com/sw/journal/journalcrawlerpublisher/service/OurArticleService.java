@@ -24,7 +24,7 @@ import java.util.Optional;
 @Service
 public class OurArticleService {
 
-    // 0809 wildmantle : 필드 주입에서 생성자 주입으로 변경
+    // 필드 주입에서 생성자 주입으로 변경
     private final OurArticleRepository ourArticleRepository;
 
     private final CategoryRepository categoryRepository;
@@ -51,6 +51,7 @@ public class OurArticleService {
         return ourArticleRepository.findByCategory(category);
     }
 
+
     // n개의 카테고리로 검색
     public List<OurArticle> findByCategories(List<Category> categories) {
         return ourArticleRepository.findByCategories(categories);
@@ -60,8 +61,8 @@ public class OurArticleService {
     public List<OurArticle> findByTag(Tag tag) {
         return ourArticleRepository.findByTag(tag);
     }
-
-    // 0809 wildmantle : 현재 사용되지 않고있는 코드임으로 주석처리함
+//
+//
 //
 //    // n개 태그로 검색
 //    public List<OurArticle> findByTags(List<Tag> tags) {
