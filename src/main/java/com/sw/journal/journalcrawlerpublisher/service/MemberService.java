@@ -2,7 +2,7 @@ package com.sw.journal.journalcrawlerpublisher.service;
 
 import com.sw.journal.journalcrawlerpublisher.constant.Role;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
-import com.sw.journal.journalcrawlerpublisher.domain.SpringUser;
+//import com.sw.journal.journalcrawlerpublisher.domain.SpringUser;
 import com.sw.journal.journalcrawlerpublisher.domain.UserFavoriteCategory;
 import com.sw.journal.journalcrawlerpublisher.domain.VerificationCode;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
@@ -23,37 +23,37 @@ import java.util.*;
 @Service
 @Transactional  // All or nothing -> 실패 시 발생하는 예외 처리를 위해 사용
 @RequiredArgsConstructor
-public class MemberService implements UserDetailsService {
+public class MemberService {
     private final MemberRepository memberRepository;
     private final VerificationCodeRepository verificationCodeRepository;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 로그인 기능 구현
-    @Override
-    public UserDetails loadUserByUsername(String username)
-            throws UsernameNotFoundException {
-        Optional<Member> registeredUser = memberRepository.findByUsername(username);
-        if (registeredUser.isEmpty()) {
-            throw new UsernameNotFoundException(username);
-        }
-        // 인증에 사용하기 위해 준비된 UserDetails 구현체
-        return SpringUser.getSpringUserDetails(registeredUser.get());
-    }
+//    // 로그인 기능 구현
+//    @Override
+//    public UserDetails loadUserByUsername(String username)
+//            throws UsernameNotFoundException {
+//        Optional<Member> registeredUser = memberRepository.findByUsername(username);
+//        if (registeredUser.isEmpty()) {
+//            throw new UsernameNotFoundException(username);
+//        }
+//        // 인증에 사용하기 위해 준비된 UserDetails 구현체
+//        return SpringUser.getSpringUserDetails(registeredUser.get());
+//    }
 
-    // CRUD 기능 구현
     // 유저 생성 메서드
     public void create(String username, String nickname, String email, String password) {
-        Member newMember = new Member();
-        newMember.setUsername(username);
-        newMember.setNickname(nickname);
-        newMember.setEmail(email);
-        newMember.setPassword(passwordEncoder.encode(password));
-        newMember.setCreatedAt(LocalDateTime.now());
-        newMember.setRole(Role.USER);
+        Member newMember = new Member(); // Member 객체 생성
+        newMember.setUsername(username); // 유저 id 설정
+        newMember.setNickname(nickname); // 유저 닉네임 설정
+        newMember.setEmail(email); // 유저 이메일 설정
+        newMember.setPassword(passwordEncoder.encode(password)); // 유저 비밀번호(복호화) 설정
+        newMember.setCreatedAt(LocalDateTime.now()); // 유저 생성 날짜 설정
+        newMember.setRole(Role.USER); // 유저 권한 설정
 
         // 중복 유저 체크
         validateDuplicateUser(newMember);
+        // 생성한 Member 객체를 DB에 저장
         memberRepository.save(newMember);
     }
 
@@ -95,6 +95,7 @@ public class MemberService implements UserDetailsService {
         userFavoriteCategoryRepository.saveAll(userFavoriteCategories);
     }
 
+    // 유저 id로 유저 검색
     public Optional<Member> findByUsername(String currentUsername) {
         return memberRepository.findByUsername(currentUsername);
     }

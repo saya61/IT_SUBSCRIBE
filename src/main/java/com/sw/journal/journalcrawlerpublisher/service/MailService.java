@@ -18,35 +18,44 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class MailService {
     private final VerificationCodeRepository verificationCodeRepository;
-
+    // 이메일 전송을 처리하는 스프링의 JavaMailSender
     private final JavaMailSender javaMailSender;
+    // 이메일 발신자 주소를 저장하는 상수
     private static final String senderEmail= "ekals0070@gmail.com";
+    // 생성된 인증 코드를 저장하는 변수
     private static String code;
 
-    // 인증번호 생성 후 verification_code 테이블에 저장하는 메서드
+    // 인증번호를 생성하고 DB에 저장하는 메서드
     public void createCode(String email) {
-         code = String.format("%06d", new Random().nextInt(999999));
-        // verification_code 테이블에 이메일과 인증번호 저장
+        // 6자리 난수를 생성하여 인증번호로 사용
+        code = String.format("%06d", new Random().nextInt(999999));
+
+        // VerificationCode 객체 생성
         VerificationCode verificationCode = new VerificationCode();
-        verificationCode.setEmail(email);
-        verificationCode.setCode(code);
-        verificationCode.setCreatedAt(LocalDateTime.now());
+        verificationCode.setEmail(email); // 사용자가 입력한 이메일 설정
+        verificationCode.setCode(code); // 인증번호 설정
+        verificationCode.setCreatedAt(LocalDateTime.now()); // 인증번호 생성 시간 설정
+
+        // 생성된 VerificationCode 객체를 DB에 저장
         verificationCodeRepository.save(verificationCode);
     }
 
-    // 메일로 보낼 메시지 생성 메서드
+    // 이메일로 보낼 MimeMessage 객체 생성 메서드
     public MimeMessage createMail(String email) {
-        // 인증번호 생성
+        // 인증번호 생성 및 DB에 저장
         createCode(email);
-        //
+        // MimeMessage 객체 생성
         MimeMessage message = javaMailSender.createMimeMessage();
 
         try {
+            // 이메일 발신자 설정
             message.setFrom(senderEmail);
+            // 이메일 수신자 설정
             message.setRecipients(MimeMessage.RecipientType.TO, email);
+            // 이메일 제목 설정
             message.setSubject("[IT SUBSCRIBE] Verify Your Email Address");
 
-            // 0809 - wildmantle : StringBuilder를 사용하여 문자열 생성
+            // 이메일 본문 내용 설정
             StringBuilder body = new StringBuilder();
             body.append("<h1>").append("Thank you for signing up with IT SUBSCRIBE. ").append("</h1>");
             body.append("<h1>").append("To complete your registration, please verify your email address by using the verification code below:").append("</h1>");
@@ -59,39 +68,46 @@ public class MailService {
             body.append("<h3>").append("Thank you,").append("</h3>");
             body.append("<h3>").append("The IT SUBSCRIBE Team").append("</h3>");
 
+            // 이메일 본문을 HTML 형식으로 설정
             message.setText(body.toString(), "UTF-8", "html");
         } catch (MessagingException e) {
+            // 이메일 생성 중 예외가 발생하면 스택 트레이스를 출력하여 디버깅
             e.printStackTrace();
         }
 
+        // 생성된 MimeMessage 객체 반환
         return message;
     }
 
-    // 메일 송신 메서드
-    // 0809 - wildmantle : 매개변수 네이밍 컨벤션 통일
+    // 이메일 송신 메서드
     public String sendMail(String email) {
         MimeMessage message = createMail(email);
         javaMailSender.send(message);
-
+        // 전송한 인증번호 반환
         return code;
     }
 
-    // 인증번호 검증 메서드
+    // 사용자가 입력한 인증번호 검증 메서드
     public boolean verifyCode(String email, String code) {
-        // 사용자가 입력한 이메일로 인증번호가 발송됐는지 확인
+        // 사용자가 입력한 이메일로 DB 조회
         Optional<VerificationCode> optionalVerificationCode = verificationCodeRepository.findByEmail(email);
-        // 발송됐을시 이메일로 발송한 인증번호와 사용자가 입력한 인증번호 비교
+
+        // DB 조회가 성공할 경우
+        // 이메일로 발송한 인증 코드와 사용자가 입력한 코드 비교
         if (optionalVerificationCode.isPresent()) {
             VerificationCode verificationCode = optionalVerificationCode.get();
             return verificationCode.getCode().equals(code);
-        } // 사용자가 입력한 이메일로 인증번호가 발송되지 않았을 때
+        }
+        // DB 조회가 실패한 경우
+        // false 반환 (잘못된 이메일이거나 코드가 발송되지 않았음)
         else {
             return false;
         }
     }
 
-    // 인증번호 삭제 메서드
+    // 인증번호 삭제 메서드 (인증이 완료된 경우 호출)
     public void deleteCode(String email) {
+        // DB 에서 해당 이메일로 발송한 인증번호 삭제
         verificationCodeRepository.deleteByEmail(email);
     }
 }
