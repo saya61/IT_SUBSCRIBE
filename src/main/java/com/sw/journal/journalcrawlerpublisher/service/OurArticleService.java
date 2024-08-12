@@ -61,9 +61,7 @@ public class OurArticleService {
     public List<OurArticle> findByTag(Tag tag) {
         return ourArticleRepository.findByTag(tag);
     }
-//
-//
-//
+
     // n개 태그로 검색
     public List<OurArticle> findByTags(List<Tag> tags) {
         return ourArticleRepository.findByTags(tags, tags.size());
