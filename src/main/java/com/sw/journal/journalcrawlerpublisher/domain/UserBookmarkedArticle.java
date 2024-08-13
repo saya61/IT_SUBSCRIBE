@@ -9,16 +9,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserBookmarkedArticle {
-    @EmbeddedId
-    private UserBookmarkedArticleId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne
-    @MapsId("memberId")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @ManyToOne
-    @MapsId("articleId")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id", nullable = false)
     private Article article;
 }
