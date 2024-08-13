@@ -1,11 +1,11 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
+import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Comment;
-import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
+import com.sw.journal.journalcrawlerpublisher.repository.ArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.CommentRepository;
-import com.sw.journal.journalcrawlerpublisher.repository.OurArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,13 +18,13 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final OurArticleRepository articleRepository;
+    private final ArticleRepository articleRepository;
     private final MemberRepository memberRepository;
 
     // 댓글 생성
     public CommentDTO createComment(CommentDTO commentDTO) {
         // 댓글을 작성한 기사 조회
-        OurArticle article = articleRepository.findById(commentDTO.getArticleId())
+        Article article = articleRepository.findById(commentDTO.getArticleId())
                 // 존재하지 않으면 예외 발생
                 .orElseThrow(() -> new IllegalArgumentException("Invalid article ID"));
 
@@ -46,7 +46,7 @@ public class CommentService {
     // 특정 기사에 대한 모든 댓글 조회
     public List<CommentDTO> getCommentsByArticle(Long articleId) {
         // 기사 조회
-        OurArticle article = articleRepository.findById(articleId)
+        Article article = articleRepository.findById(articleId)
                 // 존재하지 않으면 예외 발생
                 .orElseThrow(() -> new IllegalArgumentException("Invalid article ID"));
 

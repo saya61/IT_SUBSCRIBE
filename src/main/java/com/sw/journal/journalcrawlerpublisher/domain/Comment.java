@@ -22,5 +22,5 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "article_id", nullable = false)
-    private OurArticle article;
+    private Article article;
 }
