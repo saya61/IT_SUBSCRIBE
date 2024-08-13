@@ -1,19 +1,18 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
+import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
-import com.sw.journal.journalcrawlerpublisher.domain.OurArticle;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
+import com.sw.journal.journalcrawlerpublisher.dto.ArticleWithTagsDTO;
 import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
-import com.sw.journal.journalcrawlerpublisher.dto.OurArticleWithTagsDTO;
 import com.sw.journal.journalcrawlerpublisher.service.CommentService;
 import com.sw.journal.journalcrawlerpublisher.service.ImageService;
-import com.sw.journal.journalcrawlerpublisher.service.OurArticleService;
+import com.sw.journal.journalcrawlerpublisher.service.ArticleService;
 import com.sw.journal.journalcrawlerpublisher.service.TagService;
 import com.sw.journal.journalcrawlerpublisher.domain.Image;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +27,9 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/article")
-public class OurArticleController {
+public class ArticleController {
 
-    private final OurArticleService ourArticleService;
+    private final ArticleService articleService;
     private final TagService tagService;
     private final ImageService imageService;
     private final CommentService commentService;
@@ -64,7 +63,7 @@ public class OurArticleController {
 
     // 카테고리별 기사 조회 (태그 포함)
     @GetMapping("/category/{categoryId}")
-    public Page<OurArticleWithTagsDTO> getArticlesByCategory(
+    public Page<ArticleWithTagsDTO> getArticlesByCategory(
             @PathVariable Long categoryId,
             @RequestParam(defaultValue = "0") int page, // 페이지 번호 (기본값 0)
             @RequestParam(defaultValue = "12") int size) { // 페이지 크기 (기본값 12)
@@ -74,11 +73,11 @@ public class OurArticleController {
         // 페이지 번호, 페이지 크기를 지정한 페이지네이션 객체 생성
         Pageable pageable = PageRequest.of(page, size);
         // 카테고리별 기사 조회
-        Page<OurArticle> articlePage = ourArticleService.findByCategory(category, pageable);
+        Page<Article> articlePage = articleService.findByCategory(category, pageable);
 
         // 조회된 기사를 DTO 로 변환
-        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
-                .map(article -> OurArticleWithTagsDTO.from(article, tagService, imageService))
+        List<ArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+                .map(article -> ArticleWithTagsDTO.from(article, tagService, imageService))
                 .collect(Collectors.toList());
 
         // DTO 리스트, 페이지네이션, 전체 기사 수를 포함하는 페이지 객체를 생성하여 반환
@@ -87,15 +86,15 @@ public class OurArticleController {
 
     // 최근 게시된 기사 18개 조회
     @GetMapping("/recent")
-    public List<OurArticleWithTagsDTO> getRecentArticles() {
+    public List<ArticleWithTagsDTO> getRecentArticles() {
         // 최근 게시된 기사 18개를 조회하기 위한 페이지네이션 객체 생성
         Pageable pageable = PageRequest.of(0, 18, Sort.by(Sort.Direction.DESC, "postDate"));
         // 최근 게시된 기사 조회
-        List<OurArticle> articles = ourArticleService.findAll(pageable).getContent();
+        List<Article> articles = articleService.findAll(pageable).getContent();
 
         // 조회된 기사를 DTO 로 변환
         return articles.stream()
-                .map(article -> OurArticleWithTagsDTO.from(article, tagService, imageService))
+                .map(article -> ArticleWithTagsDTO.from(article, tagService, imageService))
                 .collect(Collectors.toList());
     }
 
@@ -110,7 +109,7 @@ public class OurArticleController {
 
     // 카테고리 n개로 기사 조회
     @PostMapping("/categories")
-    public List<OurArticle> getArticlesByCategories(@RequestBody List<Long> categoryIds) {
+    public List<Article> getArticlesByCategories(@RequestBody List<Long> categoryIds) {
         // 카테고리 리스트 생성
         // categoryIds 리스트의 각 ID를 Category 객체로 변환한 후 카테고리 리스트에 저장
         List<Category> categories = categoryIds.stream().map(id -> {
@@ -118,20 +117,20 @@ public class OurArticleController {
             category.setId(id); // 카테고리 ID 설정
             return category; // 생성된 카테고리 반환
         }).toList(); // 카테고리 리스트로 변환
-        return ourArticleService.findByCategories(categories); // 카테고리 리스트로 기사 조회
+        return articleService.findByCategories(categories); // 카테고리 리스트로 기사 조회
     }
 
     // 태그 1개로 기사 조회
     @GetMapping("/tag/{tagCode}")
-    public List<OurArticle> getArticlesByTag(@PathVariable Long tagCode) {
+    public List<Article> getArticlesByTag(@PathVariable Long tagCode) {
         Tag tag = new Tag(); // 태그 객체 생성
         tag.setId(tagCode); // 태그 ID 설정
-        return ourArticleService.findByTag(tag); // 태그로 기사 조회
+        return articleService.findByTag(tag); // 태그로 기사 조회
     }
 
     // 태그 n개로 기사 조회
     @PostMapping("/tags")
-    public List<OurArticle> getArticlesByTags(@RequestBody List<Long> tagCodes) {
+    public List<Article> getArticlesByTags(@RequestBody List<Long> tagCodes) {
         // 태그 리스트 생성
         // tagCodes 리스트의 각 code 를 Tag 객체로 변환한 후 태그 리스트에 저장
         List<Tag> tags = tagCodes.stream().map(code -> {
@@ -139,22 +138,22 @@ public class OurArticleController {
             tag.setId(code); // 태그 ID 설정
             return tag; // 생성된 태그 반환
         }).toList(); // 태그 리스트로 변환
-        return ourArticleService.findByTags(tags); // 태그 리스트로 기사 조회
+        return articleService.findByTags(tags); // 태그 리스트로 기사 조회
     }
 
     // 카테고리 1개, 태그 1개로 기사 조회
     @GetMapping("/category/{categoryId}/tag/{tagCode}")
-    public List<OurArticle> getArticlesByCategoryAndTag(@PathVariable Long categoryId, @PathVariable Long tagCode) {
+    public List<Article> getArticlesByCategoryAndTag(@PathVariable Long categoryId, @PathVariable Long tagCode) {
         Category category = new Category(); // 카테고리 객체 생성
         category.setId(categoryId); // 카테고리 ID 설정
         Tag tag = new Tag(); // 태그 객체 생성
         tag.setId(tagCode); // 태그 ID 설정
-        return ourArticleService.findByCategoryAndTag(category, tag); // 카테고리와 태그로 기사 조회
+        return articleService.findByCategoryAndTag(category, tag); // 카테고리와 태그로 기사 조회
     }
 
     // 카테고리 1개, 태그 n개로 기사 조회
     @PostMapping("/category/{categoryId}/tags")
-    public List<OurArticle> getArticlesByCategoryAndTags(@PathVariable Long categoryId, @RequestBody List<Long> tagCodes) {
+    public List<Article> getArticlesByCategoryAndTags(@PathVariable Long categoryId, @RequestBody List<Long> tagCodes) {
         Category category = new Category(); // 카테고리 객체 생성
         category.setId(categoryId); // 카테고리 ID 설정
         // 태그 리스트 생성
@@ -164,12 +163,12 @@ public class OurArticleController {
             tag.setId(code); // 태그 ID 설정
             return tag; // 생성된 태그 반환
         }).toList(); // 태그 리스트로 변환
-        return ourArticleService.findByCategoryAndTags(category, tags); // 카테고리와 태그 리스트로 기사 조회
+        return articleService.findByCategoryAndTags(category, tags); // 카테고리와 태그 리스트로 기사 조회
     }
 
     // 카테고리 n개, 태그 1개로 기사 조회
     @PostMapping("/categories/tag/{tagCode}")
-    public List<OurArticle> getArticlesByCategoriesAndTag(@RequestBody List<Long> categoryIds, @PathVariable Long tagCode) {
+    public List<Article> getArticlesByCategoriesAndTag(@RequestBody List<Long> categoryIds, @PathVariable Long tagCode) {
         // 카테고리 리스트 생성
         // categoryIds 리스트의 각 ID를 Category 객체로 변환한 후 카테고리 리스트에 저장
         List<Category> categories = categoryIds.stream().map(id -> {
@@ -179,12 +178,12 @@ public class OurArticleController {
         }).toList(); // 카테고리 리스트로 변환
         Tag tag = new Tag(); // 태그 객체 생성
         tag.setId(tagCode); // 태그 ID 설정
-        return ourArticleService.findByCategoriesAndTag(categories, tag); // 카테고리 리스트와 태그로 기사 조회
+        return articleService.findByCategoriesAndTag(categories, tag); // 카테고리 리스트와 태그로 기사 조회
     }
 
     // 카테고리 n개, 태그 n개로 기사 조회
     @PostMapping("/categories/tags")
-    public List<OurArticle> getArticlesByCategoriesAndTags(@RequestBody CategoryTagRequest request) {
+    public List<Article> getArticlesByCategoriesAndTags(@RequestBody CategoryTagRequest request) {
         // 카테고리 리스트 생성
         // CategoryTagRequest 객체에서 가져온 카테고리 ID 리스트의 각 ID를 Category 객체로 변환한 후 카테고리 리스트에 저장
         List<Category> categories = request.getCategoryIds().stream().map(id -> {
@@ -199,7 +198,7 @@ public class OurArticleController {
             tag.setId(code); // 태그 ID 설정
             return tag; // 생성된 태그 반환
         }).toList(); // 태그 리스트로 변환
-        return ourArticleService.findByCategoriesAndTags(categories, tags); // 카테고리 리스트와 태그 리스트로 기사 조회
+        return articleService.findByCategoriesAndTags(categories, tags); // 카테고리 리스트와 태그 리스트로 기사 조회
     }
 
     // 카테고리 ID 리스트와 태그 리스트를 전달하기 위한 DTO 클래스
@@ -210,13 +209,13 @@ public class OurArticleController {
     }
 
     @GetMapping("/ash-test")
-    public List<OurArticleWithTagsDTO> getTestRecentArticles() {
+    public List<ArticleWithTagsDTO> getTestRecentArticles() {
         Pageable pageable = PageRequest.of(0, 18, Sort.by(Sort.Direction.DESC, "postDate"));
-        List<OurArticle> articles = ourArticleService.findAll(pageable).getContent();
+        List<Article> articles = articleService.findAll(pageable).getContent();
 
         return articles.stream()
                 .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
                     dto.setId(article.getId());
                     dto.setTitle(article.getTitle());
                     dto.setContent(article.getContent());
@@ -228,16 +227,16 @@ public class OurArticleController {
     }
 
     @GetMapping("/all-ash-test")
-    public Page<OurArticleWithTagsDTO> getTestAllArticles(
+    public Page<ArticleWithTagsDTO> getTestAllArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
+        Page<Article> articlePage = articleService.findAll(pageable);
 
         List<Long> articleIds = new ArrayList<>();
 
-        for(OurArticle x : articlePage) {
+        for(Article x : articlePage) {
             articleIds.add(x.getId());
         }
 
@@ -246,9 +245,9 @@ public class OurArticleController {
         Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
 
 
-        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+        List<ArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
                 .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
                     dto.setId(article.getId());
                     dto.setTitle(article.getTitle());
                     dto.setContent(article.getContent());
@@ -272,16 +271,16 @@ public class OurArticleController {
     }
 
     @GetMapping("/all")
-    public Page<OurArticleWithTagsDTO> refinedGetAllArticles(
+    public Page<ArticleWithTagsDTO> refinedGetAllArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
+        Page<Article> articlePage = articleService.findAll(pageable);
 
         List<Long> articleIds = new ArrayList<>();
 
-        for(OurArticle x : articlePage) {
+        for(Article x : articlePage) {
             articleIds.add(x.getId());
         }
 
@@ -290,9 +289,9 @@ public class OurArticleController {
         Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
 
 
-        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+        List<ArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
                 .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
                     dto.setId(article.getId());
                     dto.setTitle(article.getTitle());
                     dto.setContent(article.getContent());

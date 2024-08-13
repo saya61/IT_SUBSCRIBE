@@ -3,7 +3,6 @@ package com.sw.journal.journalcrawlerpublisher.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "tag_article")
@@ -14,11 +13,11 @@ public class TagArticle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id", nullable = false)
     private Tag tag;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id", nullable = false)
-    private OurArticle article;
+    private Article article;
 }

@@ -1,11 +1,10 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
 import com.sw.journal.journalcrawlerpublisher.domain.*;
-import com.sw.journal.journalcrawlerpublisher.dto.OurArticleWithTagsDTO;
+import com.sw.journal.journalcrawlerpublisher.dto.ArticleWithTagsDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,7 +30,7 @@ public class RecommendedArticleController {
 
 //    // 유저 선호 카테고리 기사 검색
 //    @GetMapping("/user/articles/favorites-category")
-//    public ResponseEntity<List<OurArticleWithTagsDTO>> getArticlesByUserFavoriteCategories() {
+//    public ResponseEntity<List<ArticleWithTagsDTO>> getArticlesByUserFavoriteCategories() {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String currentUsername = authentication.getName();
 //        Optional<Member> member = memberService.findByUsername(currentUsername);
@@ -41,11 +40,11 @@ public class RecommendedArticleController {
 //        }
 //
 //        Member foundMember = member.get();
-//        List<OurArticle> articles = recommendArticleService.findByUserFavoriteCategories(foundMember);
+//        List<Article> articles = recommendArticleService.findByUserFavoriteCategories(foundMember);
 //
-//        List<OurArticleWithTagsDTO> articleDTOs = articles.stream()
+//        List<ArticleWithTagsDTO> articleDTOs = articles.stream()
 //                .map(article -> {
-//                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+//                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
 //                    dto.setId(article.getId());
 //                    dto.setTitle(article.getTitle());
 //                    dto.setContent(article.getContent());
@@ -107,7 +106,7 @@ public class RecommendedArticleController {
 
 
     @GetMapping("/recent")
-    public ResponseEntity<List<OurArticleWithTagsDTO>> refinedGetArticlesByUserFavoriteCategories() {
+    public ResponseEntity<List<ArticleWithTagsDTO>> refinedGetArticlesByUserFavoriteCategories() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         Optional<Member> member = memberService.findByUsername(currentUsername);
@@ -117,7 +116,7 @@ public class RecommendedArticleController {
         }
 
         Member foundMember = member.get();
-        List<OurArticle> articles;
+        List<Article> articles;
 
         // 유저 선호 카테고리가 있는지 확인
         List<UserFavoriteCategory> favoriteCategories = userFavoriteCategoryRepository.findByMember(foundMember);
@@ -129,15 +128,15 @@ public class RecommendedArticleController {
             articles = recommendArticleService.findByUserFavoriteCategories(foundMember);
         }
         List<Long> articleIds = articles.stream()
-                .map(OurArticle::getId)
+                .map(Article::getId)
                 .toList();
 
         Map<Long, List<Tag>> articleTagsMap = tagService.findTagsByArticleIds(articleIds);
         Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
 
-        List<OurArticleWithTagsDTO> articleDTOs = articles.stream()
+        List<ArticleWithTagsDTO> articleDTOs = articles.stream()
                 .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
                     dto.setId(article.getId());
                     dto.setTitle(article.getTitle());
                     dto.setContent(article.getContent());
