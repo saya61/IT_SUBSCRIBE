@@ -20,7 +20,9 @@ public class TagService {
     private final TagArticleRepository tagArticleRepository;
     private final OurArticleRepository ourArticleRepository;
 
+    // 기사에 연결된 태그들을 조회
     public List<Tag> findByArticle(OurArticle article) {
+        // 기사에 연결된 TagArticle 리스트 조회
         List<TagArticle> tagArticleList = tagArticleRepository.findByArticle(article);
         return tagArticleList.stream()
                 .map(TagArticle::getTag)
@@ -36,5 +38,4 @@ public class TagService {
                         Collectors.mapping(TagArticle::getTag, Collectors.toList())
                 ));
     }
-
 }

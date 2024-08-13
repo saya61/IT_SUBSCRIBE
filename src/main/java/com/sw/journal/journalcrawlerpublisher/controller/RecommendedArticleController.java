@@ -5,7 +5,6 @@ import com.sw.journal.journalcrawlerpublisher.dto.OurArticleWithTagsDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.*;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/recommend-article")
 public class RecommendedArticleController {
 
@@ -28,16 +28,6 @@ public class RecommendedArticleController {
     private final TagService tagService;
     private final ImageService imageService;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
-
-    @Autowired
-    public RecommendedArticleController(RecommendArticleService recommendArticleService, MemberService memberService, TagService tagService, ImageService imageService, UserFavoriteCategoryRepository userFavoriteCategoryRepository) {
-        this.recommendArticleService = recommendArticleService;
-        this.memberService = memberService;
-        this.tagService = tagService;
-        this.imageService = imageService;
-        this.userFavoriteCategoryRepository = userFavoriteCategoryRepository;
-    }
-
 
 //    // 유저 선호 카테고리 기사 검색
 //    @GetMapping("/user/articles/favorites-category")
@@ -154,11 +144,7 @@ public class RecommendedArticleController {
                     dto.setPostDate(article.getPostDate());
                     dto.setCategory(article.getCategory());
                     dto.setSource(article.getSource());
-//                    dto.setTags(tagService.findByArticle(article));
                     dto.setTags(articleTagsMap.getOrDefault(article.getId(), Collections.emptyList()));
-//                    dto.setImgUrls(imageService.findByArticle(article).stream()
-//                            .map(Image::getImgUrl)
-//                            .collect(Collectors.toList()));
                     dto.setImgUrls(articleImageMap.getOrDefault(article.getId(), Collections.emptyList()).stream()
                             .map(Image::getImgUrl)
                             .collect(Collectors.toList()));

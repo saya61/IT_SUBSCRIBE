@@ -3,6 +3,7 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sw.journal.journalcrawlerpublisher.domain.*;
+import com.sw.journal.journalcrawlerpublisher.dto.*;
 import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
@@ -43,16 +44,17 @@ public class MemberRestController {
     private final MemberService memberService;
     private final ProfileImageService profileImageService;
 
-    // 다민씨 이거 서비스로 바꾸셔야 전문가처럼 보일 것 같아요 죄송해여 제가 너무 피곤해서 왠만하면 제가 바꾸는데
-    // 괜히ㅣ 바꿨다 고장나면 너무 맘이 아파서 남깁니다.
+    // Repository 레이어를 사용해 직접 DB 접근. 서비스 레이어로의 리팩토링이 권장됨
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
 
+    // 비밀번호 암호화를 위한 PasswordEncoder 인스턴스
     private final PasswordEncoder passwordEncoder;
+    // JSON 데이터를 파싱하기 위한 ObjectMapper 인스턴스
     private final ObjectMapper jacksonObjectMapper;
 
-    // 프로필 이미지 업로드 경로
+    // 프로필 이미지 업로드 경로를 application.properties 에서 읽어옴
     @Value("${upload.path}")
     private String uploadDir;
 
@@ -60,7 +62,7 @@ public class MemberRestController {
     @PostMapping("/check-duplicate")
     public ResponseEntity<?> checkDuplicates(
             @RequestBody DuplicationCheckDTO request) throws IOException {
-        // 응답 메시지 객체
+        // 응답 메시지를 담을 DuplicationCheckDTO 객체 생성
         DuplicationCheckDTO response = new DuplicationCheckDTO();
 
         // 아이디 중복 확인
@@ -89,7 +91,7 @@ public class MemberRestController {
                 response.setNickname("사용할 수 있는 닉네임입니다.");
             }
         }
-
+        // 중복 확인 결과를 클라이언트에 반환
         return ResponseEntity.ok(response);
     }
 
@@ -98,12 +100,12 @@ public class MemberRestController {
     public ResponseEntity<String> register(
             @RequestBody MemberDTO request) throws IOException {
 
-        // 비밀번호, 비밀번호 재입력값 일치 확인
+        // 입력한 비밀번호와 비밀번호 재입력값 일치 확인
         if(!request.getPassword().equals(request.getPassword2())) {
             return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
         }
 
-        // 신규 회원 데이터 DB에 저장
+        // 일치하면 유저 생성 후 DB에 저장
         memberService.create(
                 request.getUsername(), request.getNickname(), request.getEmail(), request.getPassword()
         );
@@ -113,82 +115,105 @@ public class MemberRestController {
     // 로그인
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO request, HttpServletRequest httpRequest) {
+        // 사용자 id로 Member 객체 조회
         Optional<Member> optionalMember = memberRepository.findByUsername(request.getId());
-
+        // 사용자가 존재하지 않은 경우 오류 반환
         if (optionalMember.isEmpty()) {
             return ResponseEntity.badRequest().body("회원이 존재하지 않습니다");
         }
+        // 사용자가 존재할 경우 조회된 Member 객체에서 정보 추출
         Member member = optionalMember.get();
 
+        // 비밀번호가 일치하지 않으면 오류 반환
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
         }
 
-        // 세션 저장 및 세션 키 헤더 (setCookie) 응답
-        UserDetails userDetails = User.withUsername(member.getUsername())
-                .password(member.getPassword())
-                .roles("USER").build();
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        // 인증 정보 생성 및 SecurityContext 설정
+        UserDetails userDetails = User.withUsername(member.getUsername()) // 인증된 사용자의 사용자 id를 기반으로 UserDetails 객체 생성
+                .password(member.getPassword()) // 사용자 비밀번호 설정(비밀번호는 이미 암호화된 상태)
+                .roles("USER").build(); // 사용자에게 "USER" 권한 부여
+        SecurityContext securityContext = SecurityContextHolder.getContext(); // 현재 스레드와 관련된 SecurityContext 객체를 가져옴
+        securityContext.setAuthentication( // SecurityContext에 인증 정보(Authentication) 설정
+                new UsernamePasswordAuthenticationToken( // UsernamePasswordAuthenticationToken 객체 생성
+                        userDetails, // 인증된 사용자 정보(UserDetails)
+                        null, // 인증 정보가 없다면 비밀번호(null)
+                        userDetails.getAuthorities() // 사용자의 권한 정보
+                )
+        );
 
-        HttpSession session = httpRequest.getSession(true);
-        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+        // 세션 생성 및 SecurityContext 저장
+        HttpSession session = httpRequest.getSession(true); // 현재 요청과 관련된 HTTP 세션을 가져옴 (세션이 없다면 새로 생성)
+        session.setAttribute( // 세션에 속성 추가
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, // SecurityContext 를 저장하는 데 사용되는 키
+                securityContext // 위에서 설정한 SecurityContext 객체를 세션에 저장
+        );
 
-        // 사용자 정보 반환
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("message", "로그인에 성공했습니다.");
-        userInfo.put("nickname", member.getNickname());
-        userInfo.put("email", member.getEmail());
-        userInfo.put("avatarUrl", member.getProfileImage() != null ? member.getProfileImage().getFileUrl() : null);
+        // 사용자 정보와 성공 메시지 반환
+        Map<String, Object> userInfo = new HashMap<>(); // 클라이언트에게 반환할 사용자 정보를 저장할 맵 객체 생성
+        userInfo.put("message", "로그인에 성공했습니다."); // 로그인 성공 메시지 추가
+        userInfo.put("nickname", member.getNickname()); // 사용자 닉네임 추가
+        userInfo.put("email", member.getEmail()); // 사용자 이메일 추가
+        userInfo.put("avatarUrl", member.getProfileImage() != null // 사용자 프로필 이미지가 존재하는지 확인
+                ? member.getProfileImage().getFileUrl() // 프로필 이미지가 있으면 이미지 URL 추가
+                : null); // 프로필 이미지가 없으면 null 값 설정
 
+        // 사용자 정보를 포함한 HTTP 200 OK 응답을 클라이언트에게 반환
         return ResponseEntity.ok(userInfo);
     }
 
     // 로그아웃
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
+        // 현재 세션 무효화
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
+        // SecurityContext 를 클리어하여 사용자 인증 정보 삭제
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok("로그아웃에 성공했습니다.");
     }
 
-    // members/login을 통해 로그인된 상태여야지 GET 요청 테스트가 성공했음
     // 마이페이지 조회
     @GetMapping("/mypage")
     public ResponseEntity<?> mypage() {
-        // 사용자 인증
+        // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 현재 로그인한 사용자의 id를 가져옴
         String currentUsername = authentication.getName();
+        // 사용자 id로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
 
-        // 권한 없음
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
-
-        // 현재 사용자 정보 반환
+        // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();
+
+        // 현재 로그인한 사용자 정보를 MypageDTO로 변환하여 반환
         return ResponseEntity.ok(new MypageDTO(currentMember));
     }
 
     // 닉네임 변경
     @PostMapping("/mypage/update-nickname")
     public ResponseEntity<String> updateNickname(@RequestBody String nicknameRequest) throws IOException{
-        // 사용자 인증
+        // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 현재 로그인한 사용자의 id를 가져옴
         String currentUsername = authentication.getName();
+        // 사용자 id로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
 
-        // 권한 없음
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+        // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();
 
-        // JSON 파싱
+        // JSON 데이터를 파싱하여 닉네임 추출
         JsonNode jsonNode = jacksonObjectMapper.readTree(nicknameRequest);
         String nickname = jsonNode.get("nickname").asText();
 
@@ -197,7 +222,7 @@ public class MemberRestController {
             return ResponseEntity.badRequest().body("이미 존재하는 닉네임입니다.");
         }
 
-        // 닉네임 변경
+        // 닉네임이 유효하면 변경 후 DB에 저장
         if (!nicknameRequest.isEmpty()) {
             currentMember.setNickname(nickname);
         }
@@ -208,18 +233,22 @@ public class MemberRestController {
     // 이메일 변경
     @PostMapping("/mypage/update-email")
     public ResponseEntity<String> updateEmail(@RequestBody String emailRequest) throws IOException {
-        // 사용자 인증
+        // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 현재 로그인한 사용자의 id를 가져옴
         String currentUsername = authentication.getName();
+        // 사용자 id로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
 
-        // 권한 없음
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+
+        // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();
 
-        // JSON 파싱
+        // JSON 데이터를 파싱하여 이메일 추출
         JsonNode jsonNode = jacksonObjectMapper.readTree(emailRequest);
         String email = jsonNode.get("email").asText();
 
@@ -228,7 +257,7 @@ public class MemberRestController {
             return ResponseEntity.badRequest().body("이미 가입된 이메일입니다.");
         }
 
-        // 이메일 변경
+        // 이메일이 유효하면 변경 후 DB에 저장
         if (!emailRequest.isEmpty()) {
             currentMember.setEmail(email);
         }
@@ -240,25 +269,25 @@ public class MemberRestController {
     // 비밀번호 재설정
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(
-            // action을 통해 user ID 표시 또는 비밀번호 변경 중 선택
+            // action을 통해 사용자 ID 표시 또는 비밀번호 변경 중 선택
             @RequestParam("action") String action,
-            // user ID 표시하기 위해 RequestParam으로 user ID를 전달 받음
+            // 사용자 ID 표시하기 위해 RequestParam으로 사용자 ID를 전달 받음
             @RequestParam("id") String id,
             // 사용자가 입력한 new password, Confirm password 값 비교하기 위한 DTO
             @RequestBody ChangePwDTO request) {
-        // RequestParam을 통해 전달 받은 user ID로 사용자 검색
+        // RequestParam을 통해 전달 받은 사용자 ID로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(id);
-        // 전달 받은 user ID의 사용자가 존재하지 않을때
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자를 찾을 수 없습니다.");
         }
 
         switch (action) {
-            // user ID 표시하는 부분
+            // 사용자 ID 표시
             // show_id일때는 body 값 {}로 보내야함
             case "show_id" :
                 return ResponseEntity.ok(id);
-            // new password, Confirm password 부분
+            // 비밀번호 변경
             case "change_password" :
                 // new password, Confirm password 일치하지 않을 때
                 if (!request.getNewPw().equals(request.getNewPwConfirm())) {
@@ -278,26 +307,30 @@ public class MemberRestController {
     // 선호 카테고리 목록 출력
     @GetMapping("mypage/get-favorite-category")
     public ResponseEntity<String> getFavoriteCategory() throws IOException {
-        // 사용자 인증
+        // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 현재 로그인한 사용자의 id를 가져옴
         String currentUsername = authentication.getName();
+        // 사용자 id로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
 
-        // 권한 없음
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        // 현재 사용자 id로 선호 카테고리 검색
+        // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();
+        // 현재 로그인한 사용자 id로 선호 카테고리 검색
         List<UserFavoriteCategory> userFavoriteCategories = memberService.findByMemberId(currentMember);
 
-        // 현재 사용자의 선호 카테고리 목록을 카테고리 이름으로 매핑하여 반환
+        // 현재 사용자의 선호 카테고리 목록을 카테고리 id로 매핑하여 반환
         List<Long> favoriteCategoryNames = userFavoriteCategories.stream()
                 // 각 UserFavoriteCategory 객체에서 Category 객체를 추출
                 .map(UserFavoriteCategory::getCategory)
-                // 각 Category 객체에서 카테고리 이름 추출
+                // 각 Category 객체에서 카테고리 id 추출
                 .map(Category::getId)
+                // 카테고리 id 리스트로 반환
                 .toList();
 
         return ResponseEntity.ok(favoriteCategoryNames.toString());
@@ -308,36 +341,37 @@ public class MemberRestController {
     @Transactional
     public ResponseEntity<String> editFavoriteCategory(
             @RequestBody UserFavoriteCategoryDTO userFavoriteCategoryDTO) throws IOException {
-        // 사용자 인증
+        // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 현재 로그인한 사용자의 id를 가져옴
         String currentUsername = authentication.getName();
+        // 사용자 id로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
 
-        // 권한 없음
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+        // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();
 
         // 기존 선호 카테고리 리스트 삭제
         userFavoriteCategoryRepository.deleteByMember(currentMember);
 
-        // 새로운 선호 카테고리 리스트 반영
-        // 선호 카테고리 리스트를 기반으로 Stream 생성
-        // categoryIds는 사용자가 선택한 카테고리 ID 목록
+        // 선호 카테고리 편집 목록이 비어 있지 않은지 확인
         if (!userFavoriteCategoryDTO.getCategoryIds().isEmpty()) {
+            // 선호 카테고리 리스트 생성
+            // userFavoriteCategoryDTO 에서 가져온 카테고리 ID 리스트의 각 ID를 userFavoriteCategory 객체로 변환한 후 선호 카테고리 리스트에 저장
             List<UserFavoriteCategory> userFavoriteCategories = userFavoriteCategoryDTO.getCategoryIds().stream()
-                    // 각 categoryId를 입력으로 받아서 UserFavoriteCategory 객체를 생성하는 람다 표현식
                     .map(categoryId -> {
-                        // 각 UserFavoriteCategory 객체에는 현재 member, 선택한 category에 대응하는 Category 객체가 설정됨
-                        UserFavoriteCategory userFavoriteCategory = new UserFavoriteCategory();
-                        userFavoriteCategory.setMember(member.get());
-                        userFavoriteCategory.setCategory(categoryRepository.findById(categoryId).orElseThrow());
-                        userFavoriteCategory.setId(new UserFavoriteCategoryId(member.get().getId(), categoryId));
-                        return userFavoriteCategory;
+                        UserFavoriteCategory userFavoriteCategory = new UserFavoriteCategory(); // userFavoriteCategory 객체 생성
+                        userFavoriteCategory.setMember(member.get()); // 현재 로그인한 사용자를 설정
+                        userFavoriteCategory.setCategory(categoryRepository.findById(categoryId).orElseThrow()); // 해당 카테고리 ID에 해당하는 Category 객체를 찾아 설정 (카테고리가 존재하지 않으면 예외를 던짐)
+                        userFavoriteCategory.setId(new UserFavoriteCategoryId(member.get().getId(), categoryId)); // UserFavoriteCategory 객체에 복합 키 설정 (복합 키는 현재 사용자 ID와 카테고리 ID로 구성됨)
+                        return userFavoriteCategory; // 생성된 선호 카테고리 반환
                     })
-                    .toList();
-
+                    .toList(); // 선호 카테고리 리스트로 변환
+            // 생성된 선호 카테고리 리스트를 DB에 저장
             memberService.saveAll(userFavoriteCategories);
         }
         return ResponseEntity.ok("선호 카테고리가 저장되었습니다.");
@@ -346,87 +380,51 @@ public class MemberRestController {
     // 프로필 사진 변경
     @PostMapping("/mypage/update-profile-image")
     public ResponseEntity<?> updateProfileImage(
-            // MultipartFile은 RequestBody로 전해주면 안된다고 합니다..
             @RequestParam("file") MultipartFile file) throws IOException {
-        // 사용자 인증
+        // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 현재 로그인한 사용자의 id를 가져옴
         String currentUsername = authentication.getName();
+        // 사용자 id로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
 
-        // 권한 없음
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+        // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();
 
-        // 프로필 사진 변경
+        // 성공적으로 변경된 프로필 이미지 정보 반환
         return ResponseEntity.ok(profileImageService.updateProfileImage(currentMember, file));
-    }
-
-
-    // React에서 이미지를 표시하기 위해 이미지를 다운로드할 수 있는 엔드포인트
-    // 파일을 읽어 HTTP 응답으로 반환
-    @GetMapping("/mypage/get-profile-image")
-    public ResponseEntity<Resource> getProfileImage(@RequestParam("filename") String filename) {
-        try {
-            // 파일 업로드 경로
-            File uploadDirFile = new File(uploadDir);
-
-            // 파일의 절대 경로 생성
-            Path filePath = Paths.get(uploadDirFile.getAbsolutePath()).resolve(filename).normalize();
-            // 파일 경로를 URI로 변환하여 UrlResource 객체 생성
-            Resource resource = new UrlResource(filePath.toUri());
-
-            // 리소스가 존재하는지 확인
-            if (resource.exists()) {
-                // 기본 Content-Type 설정
-                String contentType = "application/octet-stream";
-                // 파일 확장자에 따라 적절한 Content-Type 설정
-                if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
-                    contentType = "image/jpeg";
-                } else if (filename.endsWith(".png")) {
-                    contentType = "image/png";
-                }
-
-                // 리소스가 존재하면 HTTP 응답을 생성하여 반환
-                return ResponseEntity.ok() // 200 OK 상태 코드 설정
-                        // Content-Disposition 헤더를 설정하여 파일이 첨부 파일로 다운로드되도록 함
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                        // 적절한 Content-Type 헤더를 설정
-                        .header(HttpHeaders.CONTENT_TYPE, contentType)
-                        // 리소스를 응답 본문에 포함
-                        .body(resource);
-            } else { // 리소스가 존재하지 않으면 404 Not Found 상태 코드 반환
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
-        } catch (MalformedURLException ex) { // 파일 경로가 잘못되었을 경우 500 Internal Server Error 상태 코드 반환
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
     }
 
     // 알람 설정
     @PostMapping("/mypage/update-alarm")
     public ResponseEntity<String> updateAlarm(@RequestBody String alarmRequest) throws IOException{
-        // 사용자 인증
+        // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 현재 로그인한 사용자의 id를 가져옴
         String currentUsername = authentication.getName();
+        // 사용자 id로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
 
-        // 권한 없음
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+        // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();
 
-        // JSON 파싱
+        // JSON 데이터를 파싱하여 알람 설정 추출
         JsonNode jsonNode = jacksonObjectMapper.readTree(alarmRequest);
         boolean alarm = jsonNode.get("alarm").asBoolean();
 
-        // 닉네임 변경
+        // 알람 설정 요청이 비어 있지 않은지 확인
         if (!alarmRequest.isEmpty()) {
-            currentMember.setAlarm(alarm);
+            currentMember.setAlarm(alarm); // 알람 설정
         }
-        memberRepository.save(currentMember);
+        memberRepository.save(currentMember); // 변경된 알람 설정을 DB에 저장
         return ResponseEntity.ok("알람 설정이 " +alarm+ "로 변경되었습니다.");
     }
 }

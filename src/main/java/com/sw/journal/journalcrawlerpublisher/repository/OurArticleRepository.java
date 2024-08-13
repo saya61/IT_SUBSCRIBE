@@ -14,10 +14,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-// wild-mantle 07-08
 @Repository
 public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
-    // wild-mantle 07-16
+
     // 카테고리별 페이지네이션된 기사 검색
     Page<OurArticle> findByCategory(Category category, Pageable pageable);
 
@@ -86,6 +85,4 @@ public interface OurArticleRepository extends JpaRepository<OurArticle, Long> {
             "GROUP BY a " +
             "HAVING COUNT(DISTINCT ta.tag) = :tagCount")
     List<OurArticle> findByCategoriesAndTags(@Param("categories") List<Category> categories, @Param("tags") List<Tag> tags, @Param("tagCount") long tagCount);
-
-
 }
