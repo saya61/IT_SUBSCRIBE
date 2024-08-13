@@ -228,16 +228,16 @@ public class ArticleController {
     }
 
     @GetMapping("/all-ash-test")
-    public Page<OurArticleWithTagsDTO> getTestAllArticles(
+    public Page<ArticleWithTagsDTO> getTestAllArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
+        Page<Article> articlePage = articleService.findAll(pageable);
 
         List<Long> articleIds = new ArrayList<>();
 
-        for(OurArticle x : articlePage) {
+        for(Article x : articlePage) {
             articleIds.add(x.getId());
         }
 
@@ -246,9 +246,9 @@ public class ArticleController {
         Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
 
 
-        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+        List<ArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
                 .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
                     dto.setId(article.getId());
                     dto.setTitle(article.getTitle());
                     dto.setContent(article.getContent());
@@ -272,16 +272,16 @@ public class ArticleController {
     }
 
     @GetMapping("/all")
-    public Page<OurArticleWithTagsDTO> refinedGetAllArticles(
+    public Page<ArticleWithTagsDTO> refinedGetAllArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
+        Page<Article> articlePage = articleService.findAll(pageable);
 
         List<Long> articleIds = new ArrayList<>();
 
-        for(OurArticle x : articlePage) {
+        for(Article x : articlePage) {
             articleIds.add(x.getId());
         }
 
@@ -290,9 +290,9 @@ public class ArticleController {
         Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
 
 
-        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+        List<ArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
                 .map(article -> {
-                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
                     dto.setId(article.getId());
                     dto.setTitle(article.getTitle());
                     dto.setContent(article.getContent());
