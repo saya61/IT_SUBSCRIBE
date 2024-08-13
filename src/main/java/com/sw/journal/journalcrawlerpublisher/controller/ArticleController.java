@@ -9,14 +9,20 @@ import com.sw.journal.journalcrawlerpublisher.service.CommentService;
 import com.sw.journal.journalcrawlerpublisher.service.ImageService;
 import com.sw.journal.journalcrawlerpublisher.service.ArticleService;
 import com.sw.journal.journalcrawlerpublisher.service.TagService;
+import com.sw.journal.journalcrawlerpublisher.domain.Image;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,24 +35,32 @@ public class ArticleController {
     private final ImageService imageService;
     private final CommentService commentService;
 
-    // 전체 기사 조회 (태그 포함)
-    @GetMapping("/all")
-    public Page<ArticleWithTagsDTO> getAllArticles(
-            @RequestParam(defaultValue = "0") int page, // 페이지 번호 (기본값 0)
-            @RequestParam(defaultValue = "12") int size) { // 페이지 크기 (기본값 12)
-        // 페이지 번호, 페이지 크기를 지정한 페이지네이션 객체 생성
-        Pageable pageable = PageRequest.of(page, size);
-        // 페이지네이션된 기사 목록 조회
-        Page<Article> articlePage = articleService.findAll(pageable);
-
-        // 조회된 기사를 DTO 로 변환
-        List<ArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
-                .map(article -> ArticleWithTagsDTO.from(article, tagService, imageService))
-                .collect(Collectors.toList());
-
-        // DTO 리스트, 페이지네이션, 전체 기사 수를 포함하는 페이지 객체를 생성하여 반환
-        return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
-    }
+//     전체 기사 보기 (태그 포함)
+//    @GetMapping("/all")
+//    public Page<OurArticleWithTagsDTO> getAllArticles(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "12") int size) {
+//        Pageable pageable = PageRequest.of(page, size);
+//        Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
+//
+//        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+//                .map(article -> {
+//                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+//                    dto.setId(article.getId());
+//                    dto.setTitle(article.getTitle());
+//                    dto.setContent(article.getContent());
+//                    dto.setPostDate(article.getPostDate());
+//                    dto.setCategory(article.getCategory());
+//                    dto.setSource(article.getSource());
+//                    dto.setTags(tagService.findByArticle(article));
+//                    dto.setImgUrls(imageService.findByArticle(article).stream()
+//                            .map(Image::getImgUrl)
+//                            .collect(Collectors.toList()));
+//                    return dto;
+//                }).collect(Collectors.toList());
+//
+//        return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
+//    }
 
     // 카테고리별 기사 조회 (태그 포함)
     @GetMapping("/category/{categoryId}")
@@ -212,4 +226,95 @@ public class ArticleController {
                     return dto;
                 }).collect(Collectors.toList());
     }
+
+    @GetMapping("/all-ash-test")
+    public Page<OurArticleWithTagsDTO> getTestAllArticles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
+
+        List<Long> articleIds = new ArrayList<>();
+
+        for(OurArticle x : articlePage) {
+            articleIds.add(x.getId());
+        }
+
+
+        Map<Long, List<Tag>> articleTagsMap = tagService.findTagsByArticleIds(articleIds);
+        Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
+
+
+        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+                .map(article -> {
+                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setContent(article.getContent());
+                    dto.setPostDate(article.getPostDate());
+                    dto.setCategory(article.getCategory());
+                    dto.setSource(article.getSource());
+//                    dto.setTags(tagService.findByArticle(article));
+                    dto.setTags(articleTagsMap.getOrDefault(article.getId(), Collections.emptyList()));
+//                    dto.setImgUrls(imageService.findByArticle(article).stream()
+//                            .map(Image::getImgUrl)
+//                            .collect(Collectors.toList()));
+
+                    dto.setImgUrls(articleImageMap.getOrDefault(article.getId(), Collections.emptyList()).stream()
+                            .map(Image::getImgUrl)
+                            .collect(Collectors.toList()));
+
+                    return dto;
+                }).collect(Collectors.toList());
+
+        return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
+    }
+
+    @GetMapping("/all")
+    public Page<OurArticleWithTagsDTO> refinedGetAllArticles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<OurArticle> articlePage = ourArticleService.findAll(pageable);
+
+        List<Long> articleIds = new ArrayList<>();
+
+        for(OurArticle x : articlePage) {
+            articleIds.add(x.getId());
+        }
+
+
+        Map<Long, List<Tag>> articleTagsMap = tagService.findTagsByArticleIds(articleIds);
+        Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
+
+
+        List<OurArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+                .map(article -> {
+                    OurArticleWithTagsDTO dto = new OurArticleWithTagsDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setContent(article.getContent());
+                    dto.setPostDate(article.getPostDate());
+                    dto.setCategory(article.getCategory());
+                    dto.setSource(article.getSource());
+//                    dto.setTags(tagService.findByArticle(article));
+                    dto.setTags(articleTagsMap.getOrDefault(article.getId(), Collections.emptyList()));
+//                    dto.setImgUrls(imageService.findByArticle(article).stream()
+//                            .map(Image::getImgUrl)
+//                            .collect(Collectors.toList()));
+
+                    dto.setImgUrls(articleImageMap.getOrDefault(article.getId(), Collections.emptyList()).stream()
+                            .map(Image::getImgUrl)
+                            .collect(Collectors.toList()));
+
+                    return dto;
+                }).collect(Collectors.toList());
+
+        return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
+    }
+
+
+
 }

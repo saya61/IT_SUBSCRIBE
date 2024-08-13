@@ -12,7 +12,7 @@ public interface TagArticleRepository extends JpaRepository<TagArticle, Long> {
     List<TagArticle> findByArticle(Article article);
 
 
-    //SELECT Ta.*
+    // SELECT Ta.*
     // FROM TagArticle ta
     // JOIN Tag t ON ta.tag_id = t.id
     // WHERE ta.article_id IN (1,2,3)
