@@ -164,7 +164,7 @@ class ItWorldCrawlerTest {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime today = LocalDateTime.parse(LocalDateTime.now().format(formatter), formatter);
-        LocalDateTime yesterday = today.minusDays(1);
+        LocalDateTime yesterday = today.minusDays(7);
 
         Connection conn = Jsoup.connect(URL);
         try {
