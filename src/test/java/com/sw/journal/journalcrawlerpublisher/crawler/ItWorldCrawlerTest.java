@@ -40,7 +40,7 @@ class ItWorldCrawlerTest {
             Document doc = conn.get();
             Elements elem = doc.select(".row>.section-content"); //set 자료형으로 관리해도 됨
             // 카테고리 1개
-            String articleCategory = elem.select(".font-color-primary-1").first().text();
+//            String articleCategory = elem.select(".font-color-primary-1").first().text();
             // 기사 제목
             String articleTitle = elem.select(".node-title").text();
             // 기사 이미지
@@ -60,17 +60,24 @@ class ItWorldCrawlerTest {
             // 2. 카테고리 기존 내역 없을 경우만 저장
             // for 카테고리 string literal 배열
             // 있는 경우
-            Optional<Category> optionalCategory = categoryRepository.findByName(articleCategory);
+//            Optional<Category> optionalCategory = categoryRepository.findByName(articleCategory);
+//            Category category = new Category();
+//            if(optionalCategory.isEmpty()) {
+//                category.setName(articleCategory);  // 카테고리 생성 (유니크) 이미 있는 값이면 Repository로 save할 때 판담됨 (try - catch로 사용해라)
+//                try {
+//                    category = categoryRepository.save(category);  // 카테고리 저장
+//                } catch (Exception ex) {
+//                    System.out.println(ex.getMessage());
+//                    // 카테고리 중복은 종료사유 아님
+//                }
+//            } else {
+//                category = optionalCategory.get();
+//            }
+            // 정해진 카테고리에서 랜덤하게 가져옴
+            Random randomCategory = new Random();
+            Optional<Category> optionalCategory = categoryRepository.findById(randomCategory.nextLong(9)+1L);
             Category category = new Category();
-            if(optionalCategory.isEmpty()) {
-                category.setName(articleCategory);  // 카테고리 생성 (유니크) 이미 있는 값이면 Repository로 save할 때 판담됨 (try - catch로 사용해라)
-                try {
-                    category = categoryRepository.save(category);  // 카테고리 저장
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
-                    // 카테고리 중복은 종료사유 아님
-                }
-            } else {
+            if(optionalCategory.isPresent()){
                 category = optionalCategory.get();
             }
 

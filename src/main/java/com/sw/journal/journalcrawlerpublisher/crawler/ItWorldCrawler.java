@@ -23,18 +23,18 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class ItWorldCrawler {
-    @Autowired
-    private ArticleRepository articleRepository;
-    @Autowired
-    private CategoryRepository categoryRepository;
-    @Autowired
-    private ImageRepository imageRepository;
-    @Autowired
-    private TagRepository tagRepository;
-    @Autowired
-    private TagArticleRepository tagArticleRepository;
-    @Autowired
-    private ArticleRankRepository articleRankRepository;
+
+    private final ArticleRepository articleRepository;
+
+    private final CategoryRepository categoryRepository;
+
+    private final ImageRepository imageRepository;
+
+    private final TagRepository tagRepository;
+
+    private final TagArticleRepository tagArticleRepository;
+
+    private final ArticleRankRepository articleRankRepository;
 
     public boolean crawlArticles(String articleUrl){
         Connection conn = Jsoup.connect(articleUrl);
@@ -62,17 +62,24 @@ public class ItWorldCrawler {
             // 2. 카테고리 기존 내역 없을 경우만 저장
             // for 카테고리 string literal 배열
             // 있는 경우
-            Optional<Category> optionalCategory = categoryRepository.findByName(articleCategory);
+//            Optional<Category> optionalCategory = categoryRepository.findByName(articleCategory);
+//            Category category = new Category();
+//            if(optionalCategory.isEmpty()) {
+//                category.setName(articleCategory);  // 카테고리 생성 (유니크) 이미 있는 값이면 Repository로 save할 때 판담됨 (try - catch로 사용해라)
+//                try {
+//                    category = categoryRepository.save(category);  // 카테고리 저장
+//                } catch (Exception ex) {
+//                    System.out.println(ex.getMessage());
+//                    // 카테고리 중복은 종료사유 아님
+//                }
+//            } else {
+//                category = optionalCategory.get();
+//            }
+            // 정해진 카테고리에서 랜덤하게 가져옴
+            Random randomCategory = new Random();
+            Optional<Category> optionalCategory = categoryRepository.findById(randomCategory.nextLong(9)+1L);
             Category category = new Category();
-            if(optionalCategory.isEmpty()) {
-                category.setName(articleCategory);  // 카테고리 생성 (유니크) 이미 있는 값이면 Repository로 save할 때 판담됨 (try - catch로 사용해라)
-                try {
-                    category = categoryRepository.save(category);  // 카테고리 저장
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
-                    // 카테고리 중복은 종료사유 아님
-                }
-            } else {
+            if(optionalCategory.isPresent()){
                 category = optionalCategory.get();
             }
 
