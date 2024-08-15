@@ -22,18 +22,18 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class CioCrawler {
-    @Autowired
-    private OurArticleRepository ourArticleRepository;
-    @Autowired
-    private CategoryRepository categoryRepository;
-    @Autowired
-    private ImageRepository imageRepository;
-    @Autowired
-    private TagRepository tagRepository;
-    @Autowired
-    private TagArticleRepository tagArticleRepository;
-    @Autowired
-    private ArticleRankRepository articleRankRepository;
+
+    private final ArticleRepository articleRepository;
+
+    private final CategoryRepository categoryRepository;
+
+    private final ImageRepository imageRepository;
+
+    private final TagRepository tagRepository;
+
+    private final TagArticleRepository tagArticleRepository;
+
+    private final ArticleRankRepository articleRankRepository;
 
     public boolean crawlArticles(String articleUrl){
         Connection conn = Jsoup.connect(articleUrl);
@@ -41,7 +41,7 @@ public class CioCrawler {
             Document doc = conn.get();
             Elements elem = doc.select(".row"); //set 자료형으로 관리해도 됨
             // 카테고리 1개
-            String articleCategory = elem.select(".pb-5>p.font-color-primary-2>a>small.font-color-primary-2").first().text();
+//            String articleCategory = elem.select(".pb-5>p.font-color-primary-2>a>small.font-color-primary-2").first().text();
             // 기사 제목
             String articleTitle = elem.select("#node_title").text();
             // 기사 이미지
@@ -54,38 +54,44 @@ public class CioCrawler {
             // 서비스에서는 junit을 사용하지 않는다
             // return null로 반환하고 null을 받는곳을 만든다
             // count로 중복 값이 들어오면 저장해서 insite를 만든다
-            if(ourArticleRepository.findBySource(articleUrl).isPresent()){
+            if(articleRepository.findBySource(articleUrl).isPresent()){
                 return false;
             }
 
             // 2. 카테고리 기존 내역 없을 경우만 저장
             // for 카테고리 string literal 배열
             // 있는 경우
-            Optional<Category> optionalCategory = categoryRepository.findByName(articleCategory);
+//            Optional<Category> optionalCategory = categoryRepository.findByName(articleCategory);
+//            Category category = new Category();
+//            if(optionalCategory.isEmpty()) {
+//                category.setName(articleCategory);  // 카테고리 생성 (유니크) 이미 있는 값이면 Repository로 save할 때 판담됨 (try - catch로 사용해라)
+//                try {
+//                    category = categoryRepository.save(category);  // 카테고리 저장
+//                } catch (Exception ex) {
+//                    System.out.println(ex.getMessage());
+//                    // 카테고리 중복은 종료사유 아님
+//                }
+//            } else {
+//                category = optionalCategory.get();
+//            }
+            Random randomCategory = new Random();
+            Optional<Category> optionalCategory = categoryRepository.findById(randomCategory.nextLong(9)+1);
             Category category = new Category();
-            if(optionalCategory.isEmpty()) {
-                category.setName(articleCategory);  // 카테고리 생성 (유니크) 이미 있는 값이면 Repository로 save할 때 판담됨 (try - catch로 사용해라)
-                try {
-                    category = categoryRepository.save(category);  // 카테고리 저장
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
-                    // 카테고리 중복은 종료사유 아님
-                }
-            } else {
+            if(optionalCategory.isPresent()){
                 category = optionalCategory.get();
             }
 
             // 3. 기사 객체 생성 및 저장
-            OurArticle ourArticle = new OurArticle();
-            ourArticle.setSource(articleUrl);   // 기사 Url 저장
+            Article article = new Article();
+            article.setSource(articleUrl);   // 기사 Url 저장
             // 카테고리 찾기
-            ourArticle.setCategory(category);   // 기사 카테고리 설정 위에서 유무 검사 후 저장까지 완료했으므로 .get()사용
-            ourArticle.setTitle(articleTitle);  // 기사 제목
-            ourArticle.setContent(articleContent);  // 기사 내용
-            ourArticle.setPostDate(LocalDateTime.now());  // 게시 날짜
-            OurArticle savedArticle;
+            article.setCategory(category);   // 기사 카테고리 설정 위에서 유무 검사 후 저장까지 완료했으므로 .get()사용
+            article.setTitle(articleTitle);  // 기사 제목
+            article.setContent(articleContent);  // 기사 내용
+            article.setPostDate(LocalDateTime.now());  // 게시 날짜
+            Article savedArticle;
             try {
-                savedArticle = ourArticleRepository.save(ourArticle);
+                savedArticle = articleRepository.save(article);
             } catch (DataIntegrityViolationException ex) {
                 System.out.println(ex.getMessage());
                 return false;
@@ -96,7 +102,7 @@ public class CioCrawler {
             if(!imgUrl.isEmpty()) {
                 Image image = new Image();
                 image.setImgUrl("https://www.ciokorea.com" + imgUrl);
-                image.setOurArticle(savedArticle);
+                image.setArticle(savedArticle);
                 imageRepository.save(image);
             }
 
@@ -125,7 +131,7 @@ public class CioCrawler {
                 Random random = new Random();
                 ArticleRank articleRank = new ArticleRank();
                 articleRank.setArticle(savedArticle);
-                articleRank.setCount((long) random.nextInt(100));   // 조회수에 관한 데이터를 랜덤으로 넣음 (추후 삭제)
+                articleRank.setViews((long) random.nextInt(100));   // 조회수에 관한 데이터를 랜덤으로 넣음 (추후 삭제)
                 articleRank.setIsActive(true);
                 try {
                     articleRankRepository.save(articleRank);

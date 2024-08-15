@@ -25,7 +25,7 @@ public class Article {
     @Column(nullable = false)
     private LocalDateTime postDate;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
