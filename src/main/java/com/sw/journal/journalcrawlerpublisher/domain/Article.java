@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @Table(name = "article")
 @Getter
 @Setter
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+// 아래 어노테이션보다는 DTO를 활용하는게 더 좋다
+//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
