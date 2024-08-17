@@ -1,6 +1,9 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
-import com.sw.journal.journalcrawlerpublisher.domain.VerificationCode;
+import com.sw.journal.journalcrawlerpublisher.domain.*;
+import com.sw.journal.journalcrawlerpublisher.dto.ArticleWithTagsDTO;
+import com.sw.journal.journalcrawlerpublisher.repository.ImageRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.VerificationCodeRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -24,6 +28,8 @@ public class MailService {
     private static final String senderEmail= "ekals0070@gmail.com";
     // 생성된 인증 코드를 저장하는 변수
     private static String code;
+    private final MemberRepository memberRepository;
+    private final ImageRepository imageRepository;
 
     // 인증번호를 생성하고 DB에 저장하는 메서드
     public void createCode(String email) {
@@ -40,8 +46,8 @@ public class MailService {
         verificationCodeRepository.save(verificationCode);
     }
 
-    // 이메일로 보낼 MimeMessage 객체 생성 메서드
-    public MimeMessage createMail(String email) {
+    // 인증 번호 발송 이메일의 MimeMessage 객체 생성 메서드
+    public MimeMessage createVerificationMail(String email) {
         // 인증번호 생성 및 DB에 저장
         createCode(email);
         // MimeMessage 객체 생성
@@ -79,9 +85,9 @@ public class MailService {
         return message;
     }
 
-    // 이메일 송신 메서드
-    public String sendMail(String email) {
-        MimeMessage message = createMail(email);
+    // 인증 번호 이메일 발송 메서드
+    public String sendVerificationMail(String email) {
+        MimeMessage message = createVerificationMail(email);
         javaMailSender.send(message);
         // 전송한 인증번호 반환
         return code;
@@ -109,5 +115,64 @@ public class MailService {
     public void deleteCode(String email) {
         // DB 에서 해당 이메일로 발송한 인증번호 삭제
         verificationCodeRepository.deleteByEmail(email);
+    }
+
+    // 신작 기사 알람 이메일의 MimeMessage 객체 생성 메서드
+    public MimeMessage createAlarmMail(String email, ArticleWithTagsDTO articleDTO) {
+        // MimeMessage 객체 생성
+        MimeMessage message = javaMailSender.createMimeMessage();
+
+        // 이메일 수신자의 닉네임을 가져옴
+        Optional<Member> member = memberRepository.findByEmail(email);
+        String nickname = member.get().getNickname();
+
+        // 신작 기사의 카테고리, 제목, 이미지, 링크를 가져옴
+        String newCategory = articleDTO.getCategory().getName();
+        String title = articleDTO.getTitle();
+        Image image = imageRepository.findByArticleId(articleDTO.getId()).get(0);
+        // TO DO : 링크 가져오는 코드 나중에 추가
+
+        try {
+            // 이메일 발신자 설정
+            message.setFrom(senderEmail);
+            // 이메일 수신자 설정
+            message.setRecipients(MimeMessage.RecipientType.TO, email);
+            // 이메일 제목 설정
+            message.setSubject("[IT SUBSCRIBE] New Articles Just for You!");
+
+            // 이메일 본문 내용 설정
+            StringBuilder body = new StringBuilder();
+            body.append("<h1>Hi ").append(nickname).append(",</h1>");
+            body.append("<p>We’ve just published a new article in your favorite category: ").append(newCategory).append("</p>");
+            body.append("<p>Here’s what’s new:</p>");
+            body.append("<br>");
+            body.append("<div style='margin-bottom: 20px;'>");
+            body.append("<h2>").append(title).append("</h2>");
+//            기사 링크는 나중에 추가
+//            body.append("<a href='").append(article.getLink()).append("' style='display: inline-block; padding: 10px 15px; font-size: 16px; color: #ffffff; background-color: #007bff; text-decoration: none; border-radius: 4px;'>Read more</a>");
+            if (image != null) {
+                body.append("<br>");
+                body.append("<img src='").append(image.getImgUrl()).append("' alt='Article Image' style='max-width: 100%; height: auto; border-radius: 4px;'>");
+            }
+            body.append("</div>");
+            body.append("<br>");
+            body.append("<h3>").append("Thank you,").append("</h3>");
+            body.append("<h3>").append("The IT SUBSCRIBE Team").append("</h3>");
+
+            // 이메일 본문을 HTML 형식으로 설정
+            message.setText(body.toString(), "UTF-8", "html");
+        } catch (MessagingException e) {
+            // 이메일 생성 중 예외가 발생하면 스택 트레이스를 출력하여 디버깅
+            e.printStackTrace();
+        }
+
+        // 생성된 MimeMessage 객체 반환
+        return message;
+    }
+
+    // 신작 기사 알람 이메일 발송 메서드
+    public void sendAlarmMail(String email, ArticleWithTagsDTO articleDTO) {
+        MimeMessage message = createAlarmMail(email, articleDTO); // 이메일 생성
+        javaMailSender.send(message); // 이메일 발송
     }
 }

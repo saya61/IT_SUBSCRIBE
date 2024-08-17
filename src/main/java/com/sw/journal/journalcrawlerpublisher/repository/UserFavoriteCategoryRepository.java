@@ -1,5 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.repository;
 
+import com.sw.journal.journalcrawlerpublisher.domain.Category;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.domain.UserFavoriteCategory;
 import com.sw.journal.journalcrawlerpublisher.domain.UserFavoriteCategoryId;
@@ -14,4 +15,7 @@ public interface UserFavoriteCategoryRepository extends JpaRepository<UserFavori
     List<UserFavoriteCategory> findByMember(Member member);
     // 입력된 회원의 선호 카테고리를 삭제
     void deleteByMember(Member member);
+
+    // 입력된 카테고리를 선호 카테고리로 등록한 회원 검색
+    List<UserFavoriteCategory> findByCategory(Category category);
 }
