@@ -36,7 +36,7 @@ public class CrawlingEvent {
     // 이벤트 처리 여부
     @Column(nullable = false)
     @ColumnDefault("false")
-    private boolean eventProcessed;
+    private Boolean isEventProcessed;
 
     @Override
     public String toString() {
@@ -44,7 +44,7 @@ public class CrawlingEvent {
                 "id=" + id +
                 ", createdAt=" + createdAt +
                 ", category='" + category + '\'' +
-                ", eventProcessed=" + eventProcessed +
+                ", isEventProcessed=" + isEventProcessed +
                 '}';
     }
 }

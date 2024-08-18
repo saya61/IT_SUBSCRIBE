@@ -209,7 +209,7 @@ class CioCrawlerTest {
         event.setCreatedAt(LocalDateTime.now()); // 이벤트 발생 날짜
         event.setCategory(category); // 신작 기사 카테고리
         event.setArticle(article); // 신작 기사
-        event.setEventProcessed(false); // 이벤트 처리 여부
+        event.setIsEventProcessed(false); // 이벤트 처리 여부
         crawlingEventRepository.save(event);
     }
 }

@@ -1,7 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
 import com.sw.journal.journalcrawlerpublisher.domain.*;
-import com.sw.journal.journalcrawlerpublisher.dto.ArticleWithTagsDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.ImageRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.VerificationCodeRepository;
@@ -46,7 +45,7 @@ public class MailService {
         verificationCodeRepository.save(verificationCode);
     }
 
-    // 인증 번호 발송 이메일의 MimeMessage 객체 생성 메서드
+    // 인증 번호 발송 이메일의 메시지 내용 생성 메서드
     public MimeMessage createVerificationMail(String email) {
         // 인증번호 생성 및 DB에 저장
         createCode(email);
@@ -117,8 +116,8 @@ public class MailService {
         verificationCodeRepository.deleteByEmail(email);
     }
 
-    // 신작 기사 알람 이메일의 MimeMessage 객체 생성 메서드
-    public MimeMessage createAlarmMail(String email, ArticleWithTagsDTO articleDTO) {
+    // 신작 기사 알람 이메일의 메시지 내용 생성 메서드
+    public MimeMessage createAlarmMail(String email, Article article) {
         // MimeMessage 객체 생성
         MimeMessage message = javaMailSender.createMimeMessage();
 
@@ -127,9 +126,9 @@ public class MailService {
         String nickname = member.get().getNickname();
 
         // 신작 기사의 카테고리, 제목, 이미지, 링크를 가져옴
-        String newCategory = articleDTO.getCategory().getName();
-        String title = articleDTO.getTitle();
-        Image image = imageRepository.findByArticleId(articleDTO.getId()).get(0);
+        String newCategory = article.getCategory().getName();
+        String title = article.getTitle();
+        List<Image> images = imageRepository.findByArticle(article);
         // TO DO : 링크 가져오는 코드 나중에 추가
 
         try {
@@ -143,16 +142,21 @@ public class MailService {
             // 이메일 본문 내용 설정
             StringBuilder body = new StringBuilder();
             body.append("<h1>Hi ").append(nickname).append(",</h1>");
-            body.append("<p>We’ve just published a new article in your favorite category: ").append(newCategory).append("</p>");
-            body.append("<p>Here’s what’s new:</p>");
+            body.append("<h3>We’ve just published a new article in your favorite category: ").append(newCategory).append("</h3>");
+            body.append("<h3>Here’s what’s new:</h3>");
             body.append("<br>");
             body.append("<div style='margin-bottom: 20px;'>");
             body.append("<h2>").append(title).append("</h2>");
 //            기사 링크는 나중에 추가
 //            body.append("<a href='").append(article.getLink()).append("' style='display: inline-block; padding: 10px 15px; font-size: 16px; color: #ffffff; background-color: #007bff; text-decoration: none; border-radius: 4px;'>Read more</a>");
-            if (image != null) {
+            // 이미지가 있는 경우 이메일 내용에 추가
+            if (!images.isEmpty()) {
+                Image image = images.get(0);
                 body.append("<br>");
                 body.append("<img src='").append(image.getImgUrl()).append("' alt='Article Image' style='max-width: 100%; height: auto; border-radius: 4px;'>");
+            } else {
+                // 이미지가 없을 경우 대체 텍스트나 기본 이미지 추가 (선택사항)
+                body.append("<p>No image available for this article.</p>");
             }
             body.append("</div>");
             body.append("<br>");
@@ -171,8 +175,8 @@ public class MailService {
     }
 
     // 신작 기사 알람 이메일 발송 메서드
-    public void sendAlarmMail(String email, ArticleWithTagsDTO articleDTO) {
-        MimeMessage message = createAlarmMail(email, articleDTO); // 이메일 생성
+    public void sendAlarmMail(String email, Article article) {
+        MimeMessage message = createAlarmMail(email, article); // 이메일 생성
         javaMailSender.send(message); // 이메일 발송
     }
 }

@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface CrawlingEventRepository extends JpaRepository<CrawlingEvent, Long> {
     // 처리 여부로 이벤트 테이블 조회
-    List<CrawlingEvent> findByEventProcessed(boolean isEventProcessed);
+    List<CrawlingEvent> findByIsEventProcessed(boolean isEventProcessed);
 }

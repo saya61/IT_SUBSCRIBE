@@ -41,14 +41,4 @@ public class ArticleWithTagsDTO {
                 .collect(Collectors.toList()));
         return dto;
     }
-
-    public ArticleWithTagsDTO() {}
-
-    // 크롤링 이벤트 처리 때 사용되는 DTO 생성을 위한 생성자
-    // 기사 id, 제목, 카테고리만 사용돼서 다른 필드는 초기화하지 않았음
-    public ArticleWithTagsDTO(Long id, String title, Category category) {
-        this.id = id;
-        this.title = title;
-        this.category = category;
-    }
 }
