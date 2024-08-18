@@ -20,4 +20,7 @@ public interface TagArticleRepository extends JpaRepository<TagArticle, Long> {
             "JOIN FETCH ta.tag " +
             "WHERE ta.article.id IN :articleIds")
     List<TagArticle> findByArticleIds(@Param("articleIds") List<Long> articleIds);
+
+    void deleteByArticleId(Long articleId);
+
 }
