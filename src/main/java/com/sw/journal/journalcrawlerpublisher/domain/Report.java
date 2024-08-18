@@ -1,5 +1,7 @@
 package com.sw.journal.journalcrawlerpublisher.domain;
 
+import com.sw.journal.journalcrawlerpublisher.constant.CommentReportStatus;
+import com.sw.journal.journalcrawlerpublisher.constant.ReportReason;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,8 +26,16 @@ public class Report {
     private Member reporter;
 
     @Column(nullable = false)
-    private String reason;
-
-    @Column(nullable = false)
     private LocalDateTime reportDate;
+
+    // ENUM 으로 대체
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReportReason reason;
+
+    // 댓글 처리 상태를 나타내는 컬럼 추가
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CommentReportStatus status;
+
 }

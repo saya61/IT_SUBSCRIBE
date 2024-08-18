@@ -1,15 +1,20 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
+import com.sw.journal.journalcrawlerpublisher.constant.CommentReportStatus;
 import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Comment;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
+import com.sw.journal.journalcrawlerpublisher.domain.Report;
 import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
+import com.sw.journal.journalcrawlerpublisher.dto.ReportDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.ArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.CommentRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +25,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final ArticleRepository articleRepository;
     private final MemberRepository memberRepository;
+    private final ReportRepository reportRepository;
 
     // 댓글 생성
     public CommentDTO createComment(CommentDTO commentDTO) {
@@ -75,6 +81,22 @@ public class CommentService {
         commentRepository.deleteById(commentId); // DB 에서 댓글 삭제
     }
 
+    // 댓글 신고
+    public void reportComment(ReportDTO.Request reportRequest) {
+        // Report 객체 생성
+        Report report = new Report();
+        // Report 객체 set
+        report.setComment(commentRepository.findById(reportRequest.getCommentId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID")));
+        report.setReporter(memberRepository.findById(reportRequest.getReporterId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Member ID")));
+        report.setReason(reportRequest.getReason());
+        report.setReportDate(LocalDateTime.now());
+        report.setStatus(CommentReportStatus.PENDING);
+        // Report 객체 저장
+        reportRepository.save(report);
+    }
+
     // Comment 엔티티를 CommentDTO 로 변환
     private CommentDTO mapToDTO(Comment comment) {
         CommentDTO commentDTO = new CommentDTO(); // DTO 객체 생성
@@ -87,4 +109,13 @@ public class CommentService {
         commentDTO.setProfileImageURL(comment.getMember().getProfileImage() != null ? comment.getMember().getProfileImage().getFileUrl() : null);
         return commentDTO; // 변환된 DTO 반환
     }
+
+    // 댓글 소유자 검증
+    public boolean isCommentOwner(Long commentId, String currentUsername) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID"));
+        return comment.getMember().getUsername().equals(currentUsername);
+    }
+
+
 }

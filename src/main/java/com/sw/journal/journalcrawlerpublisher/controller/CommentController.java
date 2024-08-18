@@ -1,7 +1,11 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
+import com.sw.journal.journalcrawlerpublisher.constant.ReportReason;
+import com.sw.journal.journalcrawlerpublisher.constant.Role;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
+import com.sw.journal.journalcrawlerpublisher.dto.ReportDTO;
+import com.sw.journal.journalcrawlerpublisher.exception.UnauthorizedException;
 import com.sw.journal.journalcrawlerpublisher.service.CommentService;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -25,24 +29,14 @@ public class CommentController {
     // 댓글 생성
     @PostMapping
     public ResponseEntity<CommentDTO> createComment(@RequestBody CommentDTO commentDTO) {
-        // 현재 로그인한 사용자 정보를 가져옴
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // 현재 로그인한 사용자의 id를 가져옴
-        String currentUsername = authentication.getName();
-        // 사용자 id로 Member 객체 조회
-        Optional<Member> member = memberService.findByUsername(currentUsername);
-
-        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
-        if (!member.isPresent()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        // 조회된 Member 객체에서 정보 추출
-        Member foundMember = member.get();
+        Member currentMember = getCurrentMember();
         // 댓글 DTO에 Member 정보 설정
-        commentDTO.setMemberId(foundMember.getId());
-        commentDTO.setMemberNickname(foundMember.getNickname());
-        commentDTO.setProfileImageURL(foundMember.getProfileImage().getFileUrl());
+        commentDTO.setMemberId(currentMember.getId());
+        commentDTO.setMemberNickname(currentMember.getNickname());
+        // ProfileImage가 null이 아닌 경우에만 설정
+        if (currentMember.getProfileImage() != null) {
+            commentDTO.setProfileImageURL(currentMember.getProfileImage().getFileUrl());
+        }
 
         // 댓글을 생성하고 생성된 댓글 DTO를 반환
         CommentDTO createdComment = commentService.createComment(commentDTO);
@@ -61,6 +55,10 @@ public class CommentController {
     // 댓글 수정
     @PutMapping("/{commentId}")
     public ResponseEntity<CommentDTO> updateComment(@PathVariable Long commentId, @RequestBody CommentDTO commentDTO) {
+
+        Member currentMember = getCurrentMember();
+        verifyCommentOwner(commentId, currentMember);
+
         // 댓글 ID로 댓글 조회, 댓글 DTO로 댓글 정보 수정
         CommentDTO updatedComment = commentService.updateComment(commentId, commentDTO);
         // 수정된 댓글 DTO를 응답으로 반환
@@ -70,9 +68,47 @@ public class CommentController {
     // 댓글 삭제
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
+
+        Member currentMember = getCurrentMember();
+
+        // ADMIN 또는 SUPER_ADMIN 이면 자신의 댓글이 아니여도 삭제 가능함
+        if (currentMember.getRole() != Role.ADMIN && currentMember.getRole() != Role.SUPER_ADMIN) {
+            verifyCommentOwner(commentId, currentMember);
+        }
+
         // 댓글 ID로 댓글 삭제
         commentService.deleteComment(commentId);
         // 삭제 성공 시 204 No Content 응답 반환
         return ResponseEntity.noContent().build();
     }
+
+    // 댓글 신고
+    @PostMapping("/{commentId}/report")
+    public ResponseEntity<ReportDTO.Request> reportComment(
+            @PathVariable Long commentId,
+            @RequestBody ReportDTO.Request reportRequest) {
+
+        Member currentMember = getCurrentMember();          // 현재 로그인한 사용자 정보 조회
+        reportRequest.setReporterId(currentMember.getId()); // 신고자 ID 설정
+        reportRequest.setCommentId(commentId);              // 댓글 ID 설정
+
+        commentService.reportComment(reportRequest);        // 신고 처리 로직
+        return ResponseEntity.ok(reportRequest);            // 처리된 요청 데이터 반환 (확인용)
+    }
+
+    // 현재 로그인한 사용자의 Member 객체를 가져오는 메서드
+    private Member getCurrentMember() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return memberService.findByUsername(currentUsername)
+                .orElseThrow(() -> new UnauthorizedException("사용자를 찾을 수 없습니다"));
+    }
+
+    // 댓글 소유자 검증
+    private void verifyCommentOwner(Long commentId, Member member) {
+        if (!commentService.isCommentOwner(commentId, member.getUsername())) {
+            throw new UnauthorizedException("수정 권한이 없습니다");
+        }
+    }
+
 }
