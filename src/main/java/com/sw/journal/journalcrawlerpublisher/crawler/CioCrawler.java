@@ -35,6 +35,8 @@ public class CioCrawler {
 
     private final ArticleRankRepository articleRankRepository;
 
+    private final CrawlingEventRepository crawlingEventRepository;
+
     public boolean crawlArticles(String articleUrl){
         Connection conn = Jsoup.connect(articleUrl);
         try {
@@ -141,6 +143,9 @@ public class CioCrawler {
                 }
             }
 
+            // 7. 크롤링 이벤트 생성
+            createEvent(category, savedArticle);
+
             return true;
 
         } catch (IOException e) {
@@ -187,5 +192,18 @@ public class CioCrawler {
             e.printStackTrace();
         }
 
+    }
+
+    // 크롤링 이벤트 발생 메서드
+    // 크롤링 이벤트 발생 -> DB 이벤트 테이블에 저장
+    private void createEvent(Category category, Article article) {
+        // 이벤트 객체 생성
+        CrawlingEvent event = new CrawlingEvent();
+        // 이벤트 객체 필드 설정
+        event.setCreatedAt(LocalDateTime.now()); // 이벤트 발생 날짜
+        event.setCategory(category); // 신작 기사 카테고리
+        event.setArticle(article); // 신작 기사
+        event.setIsEventProcessed(false); // 이벤트 처리 여부
+        crawlingEventRepository.save(event);
     }
 }
