@@ -12,4 +12,6 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     List<Image> findByArticle(Article article);
     @Query("SELECT i FROM Image i where i.article.id IN :articleIds")
     List<Image> findByArticleIds(@Param("articleIds") List<Long> articleIds);
+
+    void deleteByArticleId(Long articleId);
 }
