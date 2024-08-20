@@ -34,6 +34,8 @@ class CioCrawlerTest {
     private TagArticleRepository tagArticleRepository;
     @Autowired
     private ArticleRankRepository articleRankRepository;
+    @Autowired
+    private CrawlingEventRepository crawlingEventRepository;
 
     public boolean crawlArticles(String articleUrl){
         Connection conn = Jsoup.connect(articleUrl);
@@ -142,6 +144,9 @@ class CioCrawlerTest {
                 }
             }
 
+            // 7. 크롤링 이벤트 생성
+            createEvent(category, article);
+
             return true;
 
         } catch (IOException e) {
@@ -158,7 +163,10 @@ class CioCrawlerTest {
         String compareURL = "https://www.ciokorea.com/news/";  // 문자 0~29
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime today = LocalDateTime.parse(LocalDateTime.now().format(formatter), formatter);
-        LocalDateTime yesterday = today.minusDays(1);
+//        LocalDateTime yesterday = today.minusDays(1);
+        // yesterday~today 기간에 올라온 CIO Korea에 올라온 기사가 없어서 테스트 코드 수정
+        // 8월 14일 이후로 올라온 기사 크롤링
+        LocalDateTime yesterday = LocalDateTime.parse("2024-08-14 00:00:00", formatter);
 
         Connection conn = Jsoup.connect(URL);
         try {
@@ -189,5 +197,19 @@ class CioCrawlerTest {
             e.printStackTrace();
         }
 
+    }
+
+    @Test
+    // 크롤링 이벤트 발생 메서드
+    // 크롤링 이벤트 발생 -> DB 이벤트 테이블에 저장
+    public void createEvent(Category category, Article article) {
+        // 이벤트 객체 생성
+        CrawlingEvent event = new CrawlingEvent();
+        // 이벤트 객체 필드 설정
+        event.setCreatedAt(LocalDateTime.now()); // 이벤트 발생 날짜
+        event.setCategory(category); // 신작 기사 카테고리
+        event.setArticle(article); // 신작 기사
+        event.setIsEventProcessed(false); // 이벤트 처리 여부
+        crawlingEventRepository.save(event);
     }
 }

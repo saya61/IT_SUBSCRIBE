@@ -11,4 +11,6 @@ public interface ArticleRankRepository extends JpaRepository<ArticleRank, Long> 
     Optional<ArticleRank> findByArticle(Article article);
     Optional<ArticleRank> findById(Long id);
     List<ArticleRank> findAllByIsActive(Boolean isActive);
+
+    void deleteByArticleId(Long articleId);
 }

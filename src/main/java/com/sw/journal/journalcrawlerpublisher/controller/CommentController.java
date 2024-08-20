@@ -1,8 +1,12 @@
 package com.sw.journal.journalcrawlerpublisher.controller;
 
+import com.sw.journal.journalcrawlerpublisher.constant.ReportReason;
+import com.sw.journal.journalcrawlerpublisher.constant.Role;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
 import com.sw.journal.journalcrawlerpublisher.dto.ReplyDTO;
+import com.sw.journal.journalcrawlerpublisher.dto.ReportDTO;
+import com.sw.journal.journalcrawlerpublisher.exception.UnauthorizedException;
 import com.sw.journal.journalcrawlerpublisher.service.CommentService;
 import com.sw.journal.journalcrawlerpublisher.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -110,4 +114,34 @@ public class CommentController {
         ReplyDTO updatedReply = commentService.toggleLikeReply(replyId);
         return ResponseEntity.ok(updatedReply);
     }
+
+    // 댓글 신고
+    @PostMapping("/{commentId}/report")
+    public ResponseEntity<ReportDTO.Request> reportComment(
+            @PathVariable Long commentId,
+            @RequestBody ReportDTO.Request reportRequest) {
+
+        Member currentMember = getCurrentMember();          // 현재 로그인한 사용자 정보 조회
+        reportRequest.setReporterId(currentMember.getId()); // 신고자 ID 설정
+        reportRequest.setCommentId(commentId);              // 댓글 ID 설정
+
+        commentService.reportComment(reportRequest);        // 신고 처리 로직
+        return ResponseEntity.ok(reportRequest);            // 처리된 요청 데이터 반환 (확인용)
+    }
+
+    // 현재 로그인한 사용자의 Member 객체를 가져오는 메서드
+    private Member getCurrentMember() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return memberService.findByUsername(currentUsername)
+                .orElseThrow(() -> new UnauthorizedException("사용자를 찾을 수 없습니다"));
+    }
+
+    // 댓글 소유자 검증
+    private void verifyCommentOwner(Long commentId, Member member) {
+        if (!commentService.isCommentOwner(commentId, member.getUsername())) {
+            throw new UnauthorizedException("수정 권한이 없습니다");
+        }
+    }
+
 }

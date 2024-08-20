@@ -1,22 +1,27 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
+import com.sw.journal.journalcrawlerpublisher.constant.CommentReportStatus;
 import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Comment;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.domain.Reply;
+import com.sw.journal.journalcrawlerpublisher.domain.Report;
 import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
 import com.sw.journal.journalcrawlerpublisher.dto.ReplyDTO;
+import com.sw.journal.journalcrawlerpublisher.dto.ReportDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.ArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.CommentRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.ReplyRepository;
 import com.sw.journal.journalcrawlerpublisher.util.TimeUtils;
+import com.sw.journal.journalcrawlerpublisher.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Comparator;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +35,7 @@ public class CommentService {
     private final MemberRepository memberRepository;
     private final ReplyRepository replyRepository;
     // private final UserSettingsRepository userSettingsRepository; // 알림 설정을 위한 Repository
+    private final ReportRepository reportRepository;
 
     // 0.  현재 인증된 사용자 가져오기
     private Member getAuthenticatedMember() {
@@ -56,10 +62,8 @@ public class CommentService {
         comment.setContent(commentDTO.getContent()); // 댓글 내용 설정
         comment.setArticle(article); // 댓글을 작성한 기사 설정
         comment.setMember(member); // 댓글 작성자 설정
-
         // 알림 설정
         // comment.setNotificationEnabled(commentDTO.isNotificationEnabled());
-
         comment = commentRepository.save(comment); // 댓글을 DB에 저장
 
         return mapToDTO(comment); // 생성된 댓글을 DTO 로 변환하여 반환
@@ -197,6 +201,7 @@ public class CommentService {
         replyRepository.delete(reply);
     }
 
+
     // Comment 엔티티를 CommentDTO 로 변환
     private CommentDTO mapToDTO(Comment comment) {
         CommentDTO commentDTO = new CommentDTO(); // DTO 객체 생성
@@ -218,6 +223,7 @@ public class CommentService {
 
         return commentDTO; // 변환된 DTO 반환
     }
+
 
     // Comment 엔티티를 ReplyDTO 로 변환
     private ReplyDTO mapToReplyDTO(Reply comment) {
@@ -286,4 +292,29 @@ public class CommentService {
         replyRepository.save(reply);
         return mapToReplyDTO(reply);
     }
+
+    // 11. 댓글 신고
+    public void reportComment(ReportDTO.Request reportRequest) {
+        // Report 객체 생성
+        Report report = new Report();
+        // Report 객체 set
+        report.setComment(commentRepository.findById(reportRequest.getCommentId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID")));
+        report.setReporter(memberRepository.findById(reportRequest.getReporterId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Member ID")));
+        report.setReason(reportRequest.getReason());
+        report.setReportDate(LocalDateTime.now());
+        report.setStatus(CommentReportStatus.PENDING);
+        // Report 객체 저장
+        reportRepository.save(report);
+    }
+
+
+    // 댓글 소유자 검증
+    public boolean isCommentOwner(Long commentId, String currentUsername) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID"));
+        return comment.getMember().getUsername().equals(currentUsername);
+    }
+
 }

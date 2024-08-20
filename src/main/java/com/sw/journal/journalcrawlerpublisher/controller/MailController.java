@@ -37,7 +37,7 @@ public class MailController {
 
         // 인증 번호 발송 성공
         try {
-            String code = mailService.sendMail(email);
+            String code = mailService.sendVerificationMail(email);
             map.put("success", Boolean.TRUE);
             map.put("code", code);
         // 인증 번호 발송 실패
