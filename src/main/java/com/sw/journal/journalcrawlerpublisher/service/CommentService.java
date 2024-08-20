@@ -130,7 +130,7 @@ public class CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID"));
 
         // 댓글 작성자 확인
-        if (!comment.getMember().getId().equals(commentDTO.getMemberId())) {
+        if (!comment.getMember().getId().equals(member.getId())) {
             throw new IllegalArgumentException("You are not authorized to update this comment.");
         }
 
