@@ -59,11 +59,15 @@ class IndieGameCrawlerTest {
             }
 
             // 2. 카테고리 저장
-            Random randomCategory = new Random();
-            Optional<Category> optionalCategory = categoryRepository.findById(randomCategory.nextLong(9)+1);
-            Category category = new Category();
-            if(optionalCategory.isPresent()){
-                category = optionalCategory.get();
+            Optional<Category> categoryOptional = categoryRepository.findByName("인디게임");
+            Category category = null;
+            // 카테고리가 DB에 존재할 경우
+            if (categoryOptional.isPresent()) {
+                category = categoryOptional.get();
+            }
+            // 카테고리가 DB에 존재하지 않을 경우
+            else {
+                System.out.println("카테고리를 찾을 수 없습니다.");
             }
 
             // 3. 기사 객체 생성 및 저장

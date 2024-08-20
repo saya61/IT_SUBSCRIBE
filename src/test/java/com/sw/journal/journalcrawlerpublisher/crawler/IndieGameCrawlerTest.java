@@ -46,15 +46,20 @@ class IndieGameCrawlerTest {
             Document doc = conn.get();
             Elements elem = doc.select("div.main.ts-contain.cf.right-sidebar"); //set 자료형으로 관리해도 됨
             System.out.println("elem : " + elem);
+
             // 기사 제목
             String articleTitle = elem.select("div.the-post-header>div.post-meta>h1").text();
             System.out.println("articleTitle : " + articleTitle);
-            // 기사 이미지
+
+            // 기사 이미지 (이미지 태그가 두가지 케이스로 나뉨)
+            // 첫번째 케이스
             String imgUrl = elem.select("figure.wp-block-image>img").attr("src");
+            // 두번째 케이스
             if(imgUrl.isEmpty()){
                 imgUrl = elem.select("div.wp-block-image>figure>img").attr("src");
             }
             System.out.println("imgUrl : " + imgUrl);
+
             // 기사 내용
             String articleContent = elem.select("div.ts-row div.post-content").text();
             System.out.println("articleContent : " + articleContent);
@@ -69,11 +74,15 @@ class IndieGameCrawlerTest {
             }
 
             // 2. 카테고리 저장
-            Random randomCategory = new Random();
-            Optional<Category> optionalCategory = categoryRepository.findById(randomCategory.nextLong(9)+1);
-            Category category = new Category();
-            if(optionalCategory.isPresent()){
-                category = optionalCategory.get();
+            Optional<Category> categoryOptional = categoryRepository.findByName("인디게임");
+            Category category = null;
+            // 카테고리가 DB에 존재할 경우
+            if (categoryOptional.isPresent()) {
+                category = categoryOptional.get();
+            }
+            // 카테고리가 DB에 존재하지 않을 경우
+            else {
+                System.out.println("카테고리를 찾을 수 없습니다.");
             }
 
             // 3. 기사 객체 생성 및 저장
@@ -100,6 +109,7 @@ class IndieGameCrawlerTest {
                 imageRepository.save(image);
             }
 
+//            이 뉴스 사이트에는 태그가 없어서 태그 저장 코드 주석 처리
 //            // 5-1. 태그 각각 저장
 //            for(Element e : doc.select("div.the-post s-post-large>article>div.the-post-tags")) {
 //                String tagName = e.select("a").text();
