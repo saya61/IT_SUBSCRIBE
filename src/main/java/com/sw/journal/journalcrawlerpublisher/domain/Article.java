@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Table(name = "article")
 @Getter
 @Setter
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

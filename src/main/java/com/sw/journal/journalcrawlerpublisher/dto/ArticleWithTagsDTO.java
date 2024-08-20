@@ -1,5 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
 import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Tag;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 // 기사를 우리 사이트에 게시할 때 필요한 데이터를 전송하기 위한 DTO
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ArticleWithTagsDTO {
     private Long id; // 기사 id
     private String title; // 기사 제목

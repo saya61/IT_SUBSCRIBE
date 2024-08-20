@@ -14,7 +14,7 @@ public class WebConfig {
             @Override // WebMvcConfigurer의 메서드를 재정의
             public void addCorsMappings(CorsRegistry registry) { // CORS 매핑을 추가하기 위한 메서드
                 registry.addMapping("/**") // 모든 경로에 대해 CORS 설정을 적용
-                        .allowedOrigins("http://localhost:3000") // React 서버로부터의 요청을 허용
+                        .allowedOrigins("http://itscribe.site", "http://www.itscribe.site", "http://localhost:3000/") // React 앱의 URL
                         // 로컬 개발 환경에서 프론트엔드와 백엔드가 다른 포트에서 동작하는 경우에 사용됨
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 이 HTTP 메서드들을 허용
                         .allowedHeaders("*") // 모든 헤더를 허용
