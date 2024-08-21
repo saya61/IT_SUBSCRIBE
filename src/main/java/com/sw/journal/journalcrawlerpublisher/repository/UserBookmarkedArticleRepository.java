@@ -16,7 +16,7 @@ public interface UserBookmarkedArticleRepository extends JpaRepository<UserBookm
     "WHERE ub.member = :member")
     List<UserBookmarkedArticle> findBookmarkedArticlesByMember(@Param("member") Member member);
 
-    @Query("SELECT ub.id FROM UserBookmarkedArticle ub " +
+    @Query("SELECT ub FROM UserBookmarkedArticle ub " +
             "JOIN FETCH ub.article " +
             "WHERE ub.member = :member AND ub.article = :article")
     UserBookmarkedArticle deleteBookmarkedArticleByMemberAndArticle(@Param("member") Member member, @Param("article") Article article);
