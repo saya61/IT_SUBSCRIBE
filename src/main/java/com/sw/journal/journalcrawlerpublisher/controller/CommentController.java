@@ -115,7 +115,7 @@ public class CommentController {
         return ResponseEntity.ok(updatedReply);
     }
 
-    // 댓글 신고
+    // 11. 댓글 신고
     @PostMapping("/{commentId}/report")
     public ResponseEntity<ReportDTO.Request> reportComment(
             @PathVariable Long commentId,
