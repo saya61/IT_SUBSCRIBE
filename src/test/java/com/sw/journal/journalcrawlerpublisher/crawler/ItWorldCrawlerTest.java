@@ -34,11 +34,13 @@ class ItWorldCrawlerTest {
     @Autowired
     private ArticleRankRepository articleRankRepository;
 
+    // 특정 기사 URL 을 받아 해당 기사를 크롤링하는 메소드
     public boolean crawlArticles(String articleUrl){
-        Connection conn = Jsoup.connect(articleUrl);
+        Connection conn = Jsoup.connect(articleUrl); // Jsoup 를 통해 URL 에 연결
         try {
-            Document doc = conn.get();
-            Elements elem = doc.select(".row>.section-content"); //set 자료형으로 관리해도 됨
+            Document doc = conn.get(); // 문서를 가져옴
+            Elements elem = doc.select(".row>.section-content"); //set 자료형으로 관리해도 됨,기사 관련 요소를 선택
+
             // 카테고리 1개
 //            String articleCategory = elem.select(".font-color-primary-1").first().text();
             // 기사 제목

@@ -30,7 +30,7 @@ public class MypageDTO {
             // TODO : 클라이언트가 원하는 동작에 맞게 URL 컨트롤이 가능해야 함
             this.profileImageUrl = member.getProfileImage().getFileUrl(); // Member 객체에서 프로필 이미지 URL 를 가져와 초기화
         } else { // 프로필 이미지가 없을 경우 null 로 초기화
-            this.profileImageUrl = null;
+            this.profileImageUrl = "https://i.namu.wiki/i/Bge3xnYd4kRe_IKbm2uqxlhQJij2SngwNssjpjaOyOqoRhQlNwLrR2ZiK-JWJ2b99RGcSxDaZ2UCI7fiv4IDDQ.webp";
         }
         this.createdAt = member.getCreatedAt(); // Member 객체에서 사용자 생성 날짜를 가져와 초기화
     }

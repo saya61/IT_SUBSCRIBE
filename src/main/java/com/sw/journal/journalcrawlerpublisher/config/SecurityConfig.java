@@ -25,12 +25,12 @@ public class SecurityConfig {
                 // 요청에 대한 인가(Authorization) 설정
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
-                                // "/api/members/mypage/**" 경로는 인증 없이 접근 허용
-                                .requestMatchers("/api/members/mypage/**").permitAll()
+                                // "/api/members/mypage/**" 경로는 인증이 필요
+                                .requestMatchers("/api/members/mypage/**").authenticated()
                                 // 로그인 및 회원가입 페이지는 인증 없이 접근 허용
                                 .requestMatchers("/members/login", "/members/register").permitAll()
-                                // "/recommend-article/**" 경로는 인증이 필요
-                                .requestMatchers("/recommend-article/**").authenticated()
+                                // "/recommend-article/**" 경로는 인증 없이 접근 허용
+                                .requestMatchers("/recommend-article/**").permitAll()
                                 // 그 외의 모든 요청은 인증 없이 접근 허용
                                 .anyRequest().permitAll()
                 )
