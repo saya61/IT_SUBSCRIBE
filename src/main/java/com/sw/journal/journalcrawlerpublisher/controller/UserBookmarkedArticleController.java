@@ -49,7 +49,7 @@ public class UserBookmarkedArticleController {
         return ResponseEntity.ok(bookmarkedArticles);
     }
 
-    @PostMapping("add-bookmark/{articleId}")
+    @PostMapping("/add-bookmark/{articleId}")
     public ResponseEntity<String> addBookmark(@PathVariable Long articleId) {
         // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -78,5 +78,34 @@ public class UserBookmarkedArticleController {
         userBookmarkedArticleRepository.save(userBookmarkedArticle);
 
         return ResponseEntity.ok("기사가 북마크에 추가되었습니다.");
+    }
+
+    @DeleteMapping("/delete-bookmark/{articleId}")
+    public ResponseEntity<String> deleteBookmark(@PathVariable Long articleId) {
+        // 현재 로그인한 사용자 정보를 가져옴
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 현재 로그인한 사용자의 id를 가져옴
+        String currentUsername = authentication.getName();
+        // 사용자 id로 Member 객체 조회
+        Optional<Member> member = memberRepository.findByUsername(currentUsername);
+
+        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
+        if (member.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        // 조회된 Member 객체에서 정보 추출
+        Member currentMember = member.get();
+
+        // 선택한 기사 가져오기
+        Optional<Article> optionalArticle = articleRepository.findById(articleId);
+        if (optionalArticle.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        Article article = optionalArticle.get();
+
+        UserBookmarkedArticle userBookmarkedArticle = userBookmarkedArticleRepository.deleteBookmarkedArticleByMemberAndArticle(currentMember, article);
+        userBookmarkedArticleRepository.delete(userBookmarkedArticle);
+
+        return ResponseEntity.ok("기사가 북마크에서 삭제되었습니다.");
     }
 }
