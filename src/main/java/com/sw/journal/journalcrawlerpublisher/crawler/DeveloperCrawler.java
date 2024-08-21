@@ -8,46 +8,49 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
-class IndieGameCrawler {
+class DeveloperCrawler {
 
     private final ArticleRepository articleRepository;
     private final CategoryRepository categoryRepository;
     private final ImageRepository imageRepository;
+    private final TagRepository tagRepository;
+    private final TagArticleRepository tagArticleRepository;
     private final ArticleRankRepository articleRankRepository;
     private final CrawlingEventRepository crawlingEventRepository;
 
     public boolean crawlArticles(String articleUrl){
-        Connection conn = Jsoup.connect(articleUrl);
+        Connection conn = Jsoup.connect(articleUrl).userAgent("Mozilla");;
         try {
             Document doc = conn.get();
-            Elements elem = doc.select("div.main.ts-contain.cf.right-sidebar"); //set 자료형으로 관리해도 됨
+            Elements elem = doc.select("div.content"); //set 자료형으로 관리해도 됨
+            System.out.println("elem : " + elem);
 
             // 기사 제목
-            String articleTitle = elem.select("div.the-post-header>div.post-meta>h1").text();
+            String articleTitle = elem.select("div.inner-content main#main article.articles header.article-header h1.entry-title").text();
+            System.out.println("articleTitle : " + articleTitle);
 
             // 기사 이미지 (이미지 태그가 두가지 케이스로 나뉨)
-            // 첫번째 케이스
-            String imgUrl = elem.select("figure.wp-block-image>img").attr("src");
-            // 두번째 케이스
-            if(imgUrl.isEmpty()){
-                imgUrl = elem.select("div.wp-block-image>figure>img").attr("src");
-            }
+            String imgUrl = elem.select("div.inner-content main#main article.articles section.entry-content div.cell.small-12.medium-12.large-12 img").attr("src");
+            System.out.println("imgUrl : " + imgUrl);
 
             // 기사 내용
-            String articleContent = elem.select("div.ts-row div.post-content").text();
+            String articleContent = elem.select("div.inner-content main#main article.articles section.entry-content div.cell.small-12.medium-12.large-12[style] p").text();
+            System.out.println("articleContent : " + articleContent);
 
             // 1. 기사 중복 검사
             //assert ourArticleRepository.findBySource(articleUrl) == null;   // 서비스에서는 쓰지 않는게 좋다
@@ -134,6 +137,7 @@ class IndieGameCrawler {
             createEvent(category, savedArticle);
 
             return true;
+
         } catch (IOException e) {
             System.err.println("페이지 요청 중 에러 발생");
             e.printStackTrace();
@@ -143,25 +147,32 @@ class IndieGameCrawler {
 
     @Scheduled(cron = "0 0 4 * * *")
     public void crawlingCio(){
-        String URL = "https://indiegame.com/archives/category/news";
-        String compareURL = "https://indiegame.com/archives/";  // 문자 0~30
-        LocalDateTime today = LocalDateTime.now();
-        LocalDateTime yesterday = today.minusDays(1);
+        String URL = "https://www.developer-tech.com/categories/developer-languages/";
+        String compareURL = "https://www.developer-tech.com/news/";  // 문자 0~35
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
 
-        Connection conn = Jsoup.connect(URL);
+        Connection conn = Jsoup.connect(URL).userAgent("Mozilla");
         try {
             Document doc = conn.get();
-            Elements elems = doc.select("div.main>div.ts-row div.loop.loop-grid.loop-grid-base.grid.grid-2 article"); //set 자료형으로 관리해도 됨
+            Elements elems = doc.select("body#techforge div.grid-container div.content div.inner-content  main#main article"); //set 자료형으로 관리해도 됨
+            System.out.println("elems : "+elems);
             for (Element elem : elems) {
-                String link = elem.select("h2.is-title>a").attr("href");   // 기사의 링크
-                String pubDate = elem.select("div.post-meta-items>span.meta-item>span.date-link>time").attr("datetime"); // 기사 발행 시간
-                // ZonedDateTime으로 파싱
-                ZonedDateTime zonedDateTime = ZonedDateTime.parse(pubDate, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-                // LocalDateTime으로 변환
-                LocalDateTime articleLocalDateTime = zonedDateTime.toLocalDateTime();
+                System.out.println("elem : "+elem);
+                String link = elem.select("section.entry-content>header.article-header>h3>a").attr("href");   // 기사의 링크
+                System.out.println("link : " + link);
+                String pubDate = elem.select("div.content").text(); // 기사 발행 시간
+                System.out.println("pubDate : "+pubDate);
+                // '|' 기호 이전의 날짜 부분만 추출
+                pubDate = pubDate.split("\\|")[0].trim();
+                System.out.println("Parsed pubDate: " + pubDate);
+                // 날짜 형식 지정 및 파싱
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
+                LocalDate date = LocalDate.parse(pubDate, formatter);
+                System.out.println("LocalDate pubDate: " + date);
 
                 // 시간 비교
-                if(articleLocalDateTime.isBefore(today) && articleLocalDateTime.isAfter(yesterday)) {
+                if(date.isBefore(today) && date.isAfter(yesterday)) {
                     // 크롤링 가능한 기간
                     // rss에서 크롤링을 수행할 때 원하지 않는 url을 수행하지 않기 위함
                     // 저장 유무를 전달받음 이후 count로 중복 기사가 몇번 발생했는지 저장하여 insite를 만듬 로그 파일 만들기 logforj
