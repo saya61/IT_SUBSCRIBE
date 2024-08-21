@@ -44,6 +44,7 @@ public class ArticleService {
     public Page<Article> findAll(Pageable pageable) {
         return articleRepository.findAll(pageable);
     }
+    public List<Article> findAll() { return articleRepository.findAll(); }
 
     // 1개의 카테고리로만 검색
     public List<Article> findByCategory(Category category) {
