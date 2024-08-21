@@ -52,6 +52,12 @@ dependencies {
 
     // 배포시 JSR 305 어노테이션 누락
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+    // Selenium Java
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+    implementation 'org.seleniumhq.selenium:selenium-java:4.23.1'
+    // WebDriver Manager (크롬 드라이버 자동 설치)
+    implementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
 }
 
 tasks.named('test') {
