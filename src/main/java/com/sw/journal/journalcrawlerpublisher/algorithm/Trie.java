@@ -1,6 +1,7 @@
 package com.sw.journal.journalcrawlerpublisher.algorithm;
 
 import com.sw.journal.journalcrawlerpublisher.domain.Article;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class Trie {
         root = new TrieNode();
     }
 
-    // 기사 제목을 Trie 에 추가하는 메서드
+    // 기사를 Trie 에 추가하는 메서드
     public void insert(String title, Article article) {
         TrieNode node = root;
         title = title.replace(" ", "");

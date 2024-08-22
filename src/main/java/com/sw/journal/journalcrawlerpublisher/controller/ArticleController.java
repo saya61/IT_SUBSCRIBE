@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequiredArgsConstructor
@@ -314,6 +315,89 @@ public class ArticleController {
         return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
     }
 
+    @GetMapping("/trie")
+    public Page<ArticleWithTagsDTO> getTrieArticles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 수정된 getTrieArticles 메서드를 사용하여 Page<Article>을 가져옵니다.
+        Page<Article> articlePage = articleService.getTrieArticles(pageable);
+
+        List<Long> articleIds = articlePage.getContent().stream()
+                .map(Article::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<Tag>> articleTagsMap = tagService.findTagsByArticleIds(articleIds);
+        Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
+
+        List<ArticleWithTagsDTO> articleDTOs = articlePage.getContent().stream()
+                .map(article -> {
+                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setContent(article.getContent());
+                    dto.setPostDate(article.getPostDate());
+                    dto.setCategory(article.getCategory());
+                    dto.setSource(article.getSource());
+                    dto.setTags(articleTagsMap.getOrDefault(article.getId(), Collections.emptyList()));
+                    dto.setImgUrls(articleImageMap.getOrDefault(article.getId(), Collections.emptyList()).stream()
+                            .map(Image::getImgUrl)
+                            .collect(Collectors.toList()));
+                    return dto;
+                }).collect(Collectors.toList());
+
+        return new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements());
+    }
+
+
+
+    // 제목으로 기사 검색하는 메서드
+    @GetMapping("/search/{keyWords}")
+    public Page<ArticleWithTagsDTO> searchArticles(
+            @PathVariable String keyWords,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+
+        // Trie에서 검색 키워드에 맞는 기사 리스트를 가져옴
+        List<Article> searchResults = articleService.searchArticle(keyWords);
+
+        // 페이징을 적용하기 위해 Pageable 생성
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 검색된 기사 리스트에 대한 ID 리스트 생성
+        List<Long> articleIds = searchResults.stream()
+                .map(Article::getId)
+                .collect(Collectors.toList());
+
+        // 각 기사에 대한 태그 및 이미지 정보 맵 생성
+        Map<Long, List<Tag>> articleTagsMap = tagService.findTagsByArticleIds(articleIds);
+        Map<Long, List<Image>> articleImageMap = imageService.findImagesByArticleIds(articleIds);
+
+        // ArticleWithTagsDTO 리스트 생성
+        List<ArticleWithTagsDTO> articleDTOs = searchResults.stream()
+                .map(article -> {
+                    ArticleWithTagsDTO dto = new ArticleWithTagsDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setContent(article.getContent());
+                    dto.setPostDate(article.getPostDate());
+                    dto.setCategory(article.getCategory());
+                    dto.setSource(article.getSource());
+                    dto.setTags(articleTagsMap.getOrDefault(article.getId(), Collections.emptyList()));
+                    dto.setImgUrls(articleImageMap.getOrDefault(article.getId(), Collections.emptyList()).stream()
+                            .map(Image::getImgUrl)
+                            .collect(Collectors.toList()));
+                    return dto;
+                }).collect(Collectors.toList());
+
+        // 검색 결과를 페이징 처리하여 반환
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), articleDTOs.size());
+        List<ArticleWithTagsDTO> pagedArticleDTOs = articleDTOs.subList(start, end);
+
+        return new PageImpl<>(pagedArticleDTOs, pageable, articleDTOs.size());
+    }
 
 
 }
