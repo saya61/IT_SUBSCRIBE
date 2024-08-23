@@ -199,7 +199,6 @@ class CioCrawlerTest {
 
     }
 
-    @Test
     // 크롤링 이벤트 발생 메서드
     // 크롤링 이벤트 발생 -> DB 이벤트 테이블에 저장
     public void createEvent(Category category, Article article) {
