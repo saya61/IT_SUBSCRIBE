@@ -3,6 +3,7 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 import com.sw.journal.journalcrawlerpublisher.constant.Role;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.dto.ArticleModificationDTO;
+import com.sw.journal.journalcrawlerpublisher.dto.BanDTO;
 import com.sw.journal.journalcrawlerpublisher.dto.ReportDTO;
 import com.sw.journal.journalcrawlerpublisher.exception.UnauthorizedException;
 import com.sw.journal.journalcrawlerpublisher.service.AdminService;
@@ -33,7 +34,8 @@ import java.util.List;
 
  */
 
-//=> 둘다 (2)로 구현함
+// => 둘다 (2)로 구현함
+// 필요시 추후 분리
 
 
 @RestController
@@ -49,7 +51,11 @@ public class AdminController {
         this.memberService = memberService;
     }
 
-    // [댓글] - 신고된 댓글 목록 조회
+
+    //////////////////////////////
+
+
+    // [댓글] - 신고된 댓글 목록 조회 --미사용
     @GetMapping("/report-list")
     public ResponseEntity<List<ReportDTO.Response>> getReportedComments() {
         // --관리자 권한 확인
@@ -103,7 +109,50 @@ public class AdminController {
         return ResponseEntity.ok(updatedReport);
     }
 
-    // [기사] - 기사 수정 기사 수정 (제목&내용&태그)
+    // [댓글] - 댓글 신고내역 삭제
+    @DeleteMapping("/report/{reportId}")
+    public ResponseEntity<Void> deleteReport(@PathVariable Long reportId) {
+        // --관리자 권한 확인
+        if (!isAdmin()) {
+            throw new UnauthorizedException("관리자 권한이 필요합니다");
+        }
+        //
+        adminService.deleteReport(reportId);
+        return ResponseEntity.ok().build();
+    }
+
+    //////////////////////////////
+
+
+    // [유저] - Ban 기록 조회
+    @GetMapping("/user/ban-list")
+    public ResponseEntity<List<BanDTO.Response>> getBanList() {
+        // --관리자 권한 확인
+        if (!isAdmin()) {
+            throw new UnauthorizedException("관리자 권한이 필요합니다");
+        }
+        //
+        List<BanDTO.Response> banList = adminService.getBanList();
+        return ResponseEntity.ok(banList);
+    }
+
+    // [유저] - 유저 Ban하기
+    @PostMapping("/user/ban")
+    public ResponseEntity<Void> banUser(@RequestBody BanDTO.Request banRequest) {
+        // --관리자 권한 확인
+        if (!isAdmin()) {
+            throw new UnauthorizedException("관리자 권한이 필요합니다");
+        }
+        //
+        adminService.banUser(banRequest);
+        return ResponseEntity.ok().build();
+    }
+
+
+    //////////////////////////////
+
+
+    // [기사] - 기사 수정 (제목&내용&태그)
     @PutMapping("/article/{articleId}")
     public ResponseEntity<Void> updateArticle(
             @PathVariable Long articleId,

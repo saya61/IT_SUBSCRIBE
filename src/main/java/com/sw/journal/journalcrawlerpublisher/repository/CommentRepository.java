@@ -13,5 +13,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByParentCommentOrderByCreatedAtDesc(Comment parentComment); // 대댓글 최신순 조회
     int countByParentComment(Comment parentComment); // 대댓글 수 계산
 
-
+    void deleteByArticleId(Long articleId);
 }
