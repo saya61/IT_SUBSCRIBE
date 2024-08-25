@@ -7,6 +7,7 @@ import com.sw.journal.journalcrawlerpublisher.repository.VerificationCodeReposit
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,8 @@ public class MailService {
     // 이메일 전송을 처리하는 스프링의 JavaMailSender
     private final JavaMailSender javaMailSender;
     // 이메일 발신자 주소를 저장하는 상수
-    private static final String senderEmail= "ekals0070@gmail.com";
+    @Value("${spring.mail.username}")
+    private static String senderEmail;
     // 생성된 인증 코드를 저장하는 변수
     private static String code;
     private final MemberRepository memberRepository;

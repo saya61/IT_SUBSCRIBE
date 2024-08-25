@@ -74,7 +74,7 @@ class IndieGameCrawlerTest {
             }
 
             // 2. 카테고리 저장
-            Optional<Category> categoryOptional = categoryRepository.findByName("인디게임");
+            Optional<Category> categoryOptional = categoryRepository.findByName("게임 개발");
             Category category = null;
             // 카테고리가 DB에 존재할 경우
             if (categoryOptional.isPresent()) {
@@ -164,8 +164,8 @@ class IndieGameCrawlerTest {
         String compareURL = "https://indiegame.com/archives/";  // 문자 0~30
 //        LocalDateTime today = LocalDateTime.now();
 //        LocalDateTime yesterday = today.minusDays(1);
-        // 크롤링할 기사 날짜를 8월 1일 ~ 8월 20일로 지정
-        LocalDateTime today = LocalDateTime.parse("2024-08-20 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 오늘 날짜 설정
+        // 크롤링할 기사 날짜를 8월 1일 ~ 8월 25일로 지정
+        LocalDateTime today = LocalDateTime.parse("2024-08-25 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 오늘 날짜 설정
         LocalDateTime yesterday = LocalDateTime.parse("2024-08-01 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 원하는 어제 날짜 설정
 
         Connection conn = Jsoup.connect(URL);
@@ -207,7 +207,6 @@ class IndieGameCrawlerTest {
 
     }
 
-    @Test
     // 크롤링 이벤트 발생 메서드
     // 크롤링 이벤트 발생 -> DB 이벤트 테이블에 저장
     public void createEvent(Category category, Article article) {

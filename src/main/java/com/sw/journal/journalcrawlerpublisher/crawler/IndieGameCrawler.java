@@ -59,7 +59,7 @@ class IndieGameCrawler {
             }
 
             // 2. 카테고리 저장
-            Optional<Category> categoryOptional = categoryRepository.findByName("인디게임");
+            Optional<Category> categoryOptional = categoryRepository.findByName("게임 개발");
             Category category = null;
             // 카테고리가 DB에 존재할 경우
             if (categoryOptional.isPresent()) {

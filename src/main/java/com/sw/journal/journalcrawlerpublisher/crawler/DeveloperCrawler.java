@@ -28,8 +28,6 @@ class DeveloperCrawler {
     private final ArticleRepository articleRepository;
     private final CategoryRepository categoryRepository;
     private final ImageRepository imageRepository;
-    private final TagRepository tagRepository;
-    private final TagArticleRepository tagArticleRepository;
     private final ArticleRankRepository articleRankRepository;
     private final CrawlingEventRepository crawlingEventRepository;
 
@@ -62,7 +60,7 @@ class DeveloperCrawler {
             }
 
             // 2. 카테고리 저장
-            Optional<Category> categoryOptional = categoryRepository.findByName("인디게임");
+            Optional<Category> categoryOptional = categoryRepository.findByName("프레임워크");
             Category category = null;
             // 카테고리가 DB에 존재할 경우
             if (categoryOptional.isPresent()) {

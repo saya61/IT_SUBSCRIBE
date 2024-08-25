@@ -67,7 +67,7 @@ class DeveloperCrawlerTest {
             }
 
             // 2. 카테고리 저장
-            Optional<Category> categoryOptional = categoryRepository.findByName("인디게임");
+            Optional<Category> categoryOptional = categoryRepository.findByName("프레임워크");
             Category category = null;
             // 카테고리가 DB에 존재할 경우
             if (categoryOptional.isPresent()) {
@@ -138,8 +138,8 @@ class DeveloperCrawlerTest {
                 }
             }
 
-//            // 7. 크롤링 이벤트 생성
-//            createEvent(category, savedArticle);
+            // 7. 크롤링 이벤트 생성
+            createEvent(category, savedArticle);
 
             return true;
 
@@ -157,8 +157,8 @@ class DeveloperCrawlerTest {
         String compareURL = "https://www.developer-tech.com/news/";  // 문자 0~35
 //        LocalDateTime today = LocalDateTime.now();
 //        LocalDateTime yesterday = today.minusDays(1);
-        // 크롤링할 기사 날짜를 7월 1일 ~ 8월 20일로 지정
-        LocalDate today = LocalDate.parse("2024-08-20 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 오늘 날짜 설정
+        // 크롤링할 기사 날짜를 7월 1일 ~ 8월 25일로 지정
+        LocalDate today = LocalDate.parse("2024-08-25 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 오늘 날짜 설정
         LocalDate yesterday = LocalDate.parse("2024-07-01 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // 원하는 어제 날짜 설정
 
         Connection conn = Jsoup.connect(URL).userAgent("Mozilla");
@@ -201,17 +201,16 @@ class DeveloperCrawlerTest {
 
     }
 
-//    @Test
-//    // 크롤링 이벤트 발생 메서드
-//    // 크롤링 이벤트 발생 -> DB 이벤트 테이블에 저장
-//    public void createEvent(Category category, Article article) {
-//        // 이벤트 객체 생성
-//        CrawlingEvent event = new CrawlingEvent();
-//        // 이벤트 객체 필드 설정
-//        event.setCreatedAt(LocalDateTime.now()); // 이벤트 발생 날짜
-//        event.setCategory(category); // 신작 기사 카테고리
-//        event.setArticle(article); // 신작 기사
-//        event.setIsEventProcessed(false); // 이벤트 처리 여부
-//        crawlingEventRepository.save(event);
-//    }
+    // 크롤링 이벤트 발생 메서드
+    // 크롤링 이벤트 발생 -> DB 이벤트 테이블에 저장
+    public void createEvent(Category category, Article article) {
+        // 이벤트 객체 생성
+        CrawlingEvent event = new CrawlingEvent();
+        // 이벤트 객체 필드 설정
+        event.setCreatedAt(LocalDateTime.now()); // 이벤트 발생 날짜
+        event.setCategory(category); // 신작 기사 카테고리
+        event.setArticle(article); // 신작 기사
+        event.setIsEventProcessed(false); // 이벤트 처리 여부
+        crawlingEventRepository.save(event);
+    }
 }
