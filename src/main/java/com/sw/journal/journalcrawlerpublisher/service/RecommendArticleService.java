@@ -8,6 +8,14 @@ import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRep
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
+import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
+import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
+import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
+import org.apache.mahout.cf.taste.recommender.RecommendedItem;
+import org.apache.mahout.cf.taste.recommender.Recommender;
+import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +37,7 @@ public class RecommendArticleService {
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
 
     private final ArticleService articleService;
+    private final BookmarkService bookmarkService;
 
     // 최신 기사를 주어진 개수만큼 조회
     public List<Article> findRecentArticles(int limit) {
@@ -60,4 +69,25 @@ public class RecommendArticleService {
         // 해당 카테고리에 속한 기사 중 최신 기사를 주어진 개수만큼 조회하여 반환
         return articleRepository.findTopByCategoriesOrderByPostDate(categories, PageRequest.of(0, limit));
     }
+    public List<RecommendedItem> recommendArticlesForUser(long userId, int maxResults) throws Exception {
+        // 데이터 모델 생성
+        DataModel dataModel = bookmarkService.getMahoutDataModel();
+
+        // 유사도 계산
+        UserSimilarity similarity = new PearsonCorrelationSimilarity(dataModel);
+
+        // 이웃 선정
+        UserNeighborhood neighborhood = new NearestNUserNeighborhood(2, similarity, dataModel);
+
+        // 추천 엔진 생성
+        Recommender recommender = new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
+
+        // 추천 결과 생성
+        return recommender.recommend(userId, maxResults);
+    }
+
+
+
+
+
 }

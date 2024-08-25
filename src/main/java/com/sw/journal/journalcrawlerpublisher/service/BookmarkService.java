@@ -7,6 +7,11 @@ import com.sw.journal.journalcrawlerpublisher.repository.ArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserBookmarkedArticleRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
+import org.apache.mahout.cf.taste.impl.model.GenericDataModel;
+import org.apache.mahout.cf.taste.impl.model.GenericUserPreferenceArray;
+import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.model.PreferenceArray;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,4 +39,35 @@ public class BookmarkService {
         userBookmarkedArticle.setArticle(article);
         userBookmarkedArticleRepository.save(userBookmarkedArticle);
     }
+
+    public List<UserBookmarkedArticle> getAllBookmarkedArticles() {
+        return userBookmarkedArticleRepository.findAll();
+    }
+    public DataModel getMahoutDataModel() {
+        // 데이터베이스에서 데이터 로드
+        List<UserBookmarkedArticle> bookmarks = getAllBookmarkedArticles();
+
+        // 데이터 모델 생성
+        FastByIDMap<PreferenceArray> preferences = new FastByIDMap<>();
+        for (UserBookmarkedArticle bookmark : bookmarks) {
+            long userId = bookmark.getMember().getId();
+            long articleId = bookmark.getArticle().getId();
+            double rating = 10.0;
+
+            // 사용자별로 데이터를 묶음
+            PreferenceArray userPreferences = preferences.get(userId);
+            if (userPreferences == null) {
+                userPreferences = new GenericUserPreferenceArray(1);
+                userPreferences.setUserID(0, userId);
+            }
+            userPreferences.setItemID(0, articleId);
+            userPreferences.setValue(0, (float) rating);
+            preferences.put(userId, userPreferences);
+        }
+
+        return new GenericDataModel(preferences);
+    }
+
+
+
 }
