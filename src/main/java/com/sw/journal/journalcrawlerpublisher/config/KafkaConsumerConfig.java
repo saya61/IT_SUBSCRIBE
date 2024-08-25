@@ -34,9 +34,9 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId); // 컨슈머가 속할 그룹 ID
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class); // 메시지 키의 역직렬화 방식으로 StringSerializer 사용
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class); // 메시지 값의 역직렬화 방식으로 JsonSerializer 사용
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.sw.journal.journalcrawlerpublisher.dto"); // 역직렬화할 클래스 패키지 (신뢰할 수 있는 패키지)
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, CrawlingEventDTO.class.getName()); // 기본으로 역직렬화할 DTO 타입
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // 자동 커밋을 비활성화 -> 수동 커밋으로 메시지 처리
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.sw.journal.journalcrawlerpublisher.dto"); //  JSON 역직렬화 시 신뢰할 수 있는 패키지 지정
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, CrawlingEventDTO.class.getName()); // 기본으로 역직렬화할 DTO 타입 지정 (JSON 메시지를 CrawlingEventDTO 로 변환)
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // 자동 커밋 비활성화 -> 수동 커밋으로 메시지 처리
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(),
                 new JsonDeserializer<>(CrawlingEventDTO.class)); // 설정된 값을 바탕으로 Kafka 컨슈머 팩토리 생성 후 반환
     }

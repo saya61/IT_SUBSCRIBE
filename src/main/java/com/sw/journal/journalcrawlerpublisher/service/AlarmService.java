@@ -1,11 +1,9 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
-import com.sw.journal.journalcrawlerpublisher.domain.Article;
 import com.sw.journal.journalcrawlerpublisher.domain.Category;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 import com.sw.journal.journalcrawlerpublisher.domain.UserFavoriteCategory;;
 import com.sw.journal.journalcrawlerpublisher.dto.CrawlingEventDTO;
-import com.sw.journal.journalcrawlerpublisher.repository.ArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +29,9 @@ class AlarmService {
             , properties = {"spring.json.value.default.type:com.sw.journal.journalcrawlerpublisher.dto.CrawlingEventDTO"}
     )
     public void listen(CrawlingEventDTO eventDTO, Acknowledgment ack) {
-        System.out.println("Received eventDTO : " + eventDTO);
         // Kafka 에서 DTO 를 수신 받아 categoryId와 articleId 추출
         Long categoryId = eventDTO.getCategoryId();
-        System.out.println("Received categoryId : " + categoryId);
         Long articleId = eventDTO.getArticleId();
-        System.out.println("Received articleId : " + articleId);
 
         // categoryId로 Category 객체 조회
         Category category = categoryRepository.findById(categoryId).orElse(null);
