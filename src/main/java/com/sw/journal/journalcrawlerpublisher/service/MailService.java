@@ -1,9 +1,7 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
 import com.sw.journal.journalcrawlerpublisher.domain.*;
-import com.sw.journal.journalcrawlerpublisher.repository.ImageRepository;
-import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
-import com.sw.journal.journalcrawlerpublisher.repository.VerificationCodeRepository;
+import com.sw.journal.journalcrawlerpublisher.repository.*;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +29,7 @@ public class MailService {
     private static String code;
     private final MemberRepository memberRepository;
     private final ImageRepository imageRepository;
+    private final ArticleRepository articleRepository;
 
     // 인증번호를 생성하고 DB에 저장하는 메서드
     public void createCode(String email) {
@@ -119,18 +118,21 @@ public class MailService {
     }
 
     // 신작 기사 알람 이메일의 메시지 내용 생성 메서드
-    public MimeMessage createAlarmMail(String email, Article article) {
+    public MimeMessage createAlarmMail(String email, Long articleId) {
         // MimeMessage 객체 생성
         MimeMessage message = javaMailSender.createMimeMessage();
 
-        // 이메일 수신자의 닉네임을 가져옴
+        // 이메일 수신자의 닉네임 조회
         Optional<Member> member = memberRepository.findByEmail(email);
         String nickname = member.get().getNickname();
 
+        // 기사 id로 기사 조회
+        Optional<Article> article = articleRepository.findById(articleId);
+
         // 신작 기사의 카테고리, 제목, 이미지, 링크를 가져옴
-        String newCategory = article.getCategory().getName();
-        String title = article.getTitle();
-        List<Image> images = imageRepository.findByArticle(article);
+        String newCategory = article.get().getCategory().getName();
+        String title = article.get().getTitle();
+        List<Image> images = imageRepository.findByArticleId(articleId);
         // TO DO : 링크 가져오는 코드 나중에 추가
 
         try {
@@ -177,8 +179,8 @@ public class MailService {
     }
 
     // 신작 기사 알람 이메일 발송 메서드
-    public void sendAlarmMail(String email, Article article) {
-        MimeMessage message = createAlarmMail(email, article); // 이메일 생성
+    public void sendAlarmMail(String email, Long articleId) {
+        MimeMessage message = createAlarmMail(email, articleId); // 이메일 생성
         javaMailSender.send(message); // 이메일 발송
     }
 }
