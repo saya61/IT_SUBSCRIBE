@@ -1,6 +1,7 @@
 package com.sw.journal.journalcrawlerpublisher.crawler;
 
 import com.sw.journal.journalcrawlerpublisher.domain.*;
+import com.sw.journal.journalcrawlerpublisher.dto.CrawlingEventDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
@@ -9,7 +10,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +31,11 @@ class DeveloperCrawler {
     private final ArticleRepository articleRepository;
     private final CategoryRepository categoryRepository;
     private final ImageRepository imageRepository;
-    private final TagRepository tagRepository;
-    private final TagArticleRepository tagArticleRepository;
     private final ArticleRankRepository articleRankRepository;
-    private final CrawlingEventRepository crawlingEventRepository;
+    private final KafkaTemplate<String, CrawlingEventDTO> kafkaTemplate;
+    // 크롤링 이벤트를 발행할 Kafka 토픽
+    @Value("${spring.kafka.template.default-topic}")
+    private String CRAWLING_TOPIC;
 
     public boolean crawlArticles(String articleUrl){
         Connection conn = Jsoup.connect(articleUrl).userAgent("Mozilla");;
@@ -62,7 +66,7 @@ class DeveloperCrawler {
             }
 
             // 2. 카테고리 저장
-            Optional<Category> categoryOptional = categoryRepository.findByName("인디게임");
+            Optional<Category> categoryOptional = categoryRepository.findByName("프레임워크");
             Category category = null;
             // 카테고리가 DB에 존재할 경우
             if (categoryOptional.isPresent()) {
@@ -193,15 +197,14 @@ class DeveloperCrawler {
     }
 
     // 크롤링 이벤트 발생 메서드
-    // 크롤링 이벤트 발생 -> DB 이벤트 테이블에 저장
+    // 크롤링 이벤트 발생 -> Kafka 로 발행
     public void createEvent(Category category, Article article) {
-        // 이벤트 객체 생성
-        CrawlingEvent event = new CrawlingEvent();
-        // 이벤트 객체 필드 설정
-        event.setCreatedAt(LocalDateTime.now()); // 이벤트 발생 날짜
-        event.setCategory(category); // 신작 기사 카테고리
-        event.setArticle(article); // 신작 기사
-        event.setIsEventProcessed(false); // 이벤트 처리 여부
-        crawlingEventRepository.save(event);
+        // 이벤트 DTO 생성 및 필드 설정
+        CrawlingEventDTO eventDTO = new CrawlingEventDTO();
+        eventDTO.setCategoryId(category.getId()); // 신작 기사 카테고리 id
+        eventDTO.setArticleId(article.getId()); // 신작 기사 id
+
+        // Kafka로 이벤트 발행
+        kafkaTemplate.send(CRAWLING_TOPIC, eventDTO);
     }
 }
