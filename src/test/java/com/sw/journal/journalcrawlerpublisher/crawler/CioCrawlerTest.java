@@ -172,7 +172,7 @@ class CioCrawlerTest {
 //        LocalDateTime yesterday = today.minusDays(1);
         // yesterday~today 기간에 올라온 CIO Korea에 올라온 기사가 없어서 테스트 코드 수정
         // 8월 14일 이후로 올라온 기사 크롤링
-        LocalDateTime yesterday = LocalDateTime.parse("2024-08-14 00:00:00", formatter);
+        LocalDateTime yesterday = today.minusDays(7);
 
         Connection conn = Jsoup.connect(URL);
         try {
