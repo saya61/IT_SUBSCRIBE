@@ -5,6 +5,7 @@ import com.sw.journal.journalcrawlerpublisher.dto.ArticleWithTagsDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.service.*;
 import lombok.RequiredArgsConstructor;
+import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -152,5 +153,15 @@ public class RecommendedArticleController {
                 }).collect(Collectors.toList());
 
         return ResponseEntity.ok(articleDTOs);
+    }
+
+    @GetMapping("/articles/{userId}")
+    public List<RecommendedItem> recommendArticles(@PathVariable("userId") long userId) {
+        try {
+            return recommendArticleService.recommendArticlesForUser(userId, 5);  // 최대 5개의 추천
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
