@@ -1,10 +1,12 @@
 package com.sw.journal.journalcrawlerpublisher.service;
 
 import com.sw.journal.journalcrawlerpublisher.constant.Role;
+import com.sw.journal.journalcrawlerpublisher.domain.Ban;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
 //import com.sw.journal.journalcrawlerpublisher.domain.SpringUser;
 import com.sw.journal.journalcrawlerpublisher.domain.UserFavoriteCategory;
 import com.sw.journal.journalcrawlerpublisher.domain.VerificationCode;
+import com.sw.journal.journalcrawlerpublisher.repository.BanRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.VerificationCodeRepository;
@@ -16,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -28,6 +31,7 @@ public class MemberService {
     private final VerificationCodeRepository verificationCodeRepository;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BanRepository banRepository;
 
 //    // 로그인 기능 구현
 //    @Override
@@ -99,4 +103,11 @@ public class MemberService {
     public Optional<Member> findByUsername(String currentUsername) {
         return memberRepository.findByUsername(currentUsername);
     }
+
+    // 계정 정지 상태와 종료일 확인
+    public Optional<LocalDate> getBanEndDateByMemberId(Long memberId) {
+        return banRepository.findTopByMemberIdAndActiveTrueOrderByBanEndDateDesc(memberId)
+                .map(Ban::getBanEndDate);
+    }
+
 }

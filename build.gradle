@@ -60,6 +60,8 @@ dependencies {
     implementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
 
     implementation 'org.apache.mahout:mahout-mr:0.13.0'
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
 }
 
 tasks.named('test') {
