@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ArticleRepository extends JpaRepository<Article, Long> {
+public interface ArticleRepository
+        extends JpaRepository<Article, Long> ,ArticleRepositoryCustom {
 
     // 카테고리별 페이지네이션된 기사 검색
     Page<Article> findByCategory(Category category, Pageable pageable);

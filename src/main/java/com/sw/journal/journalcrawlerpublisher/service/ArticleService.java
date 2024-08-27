@@ -9,7 +9,6 @@ import com.sw.journal.journalcrawlerpublisher.repository.CategoryRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.TagArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.TagRepository;
 import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -96,12 +96,12 @@ public class ArticleService {
     // @PostConstruct : 의존성 주입이 끝나면 한번만 실행시킴.
     @PostConstruct
     public void initializeTrie(){
-        List<Article> allArticles = articleRepository.findAll();
+        // category 를 eager 하게 불러오도록 쿼리 변경
+        List<Article> allArticles = articleRepository.findArticlesWithCategory();
         for (Article article : allArticles) {
             trieArticle.insert(article.getTitle(), article);
         }
     }
-
 
     public List<Article> searchArticle(String keyWords){
         return trieArticle.search(keyWords);

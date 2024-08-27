@@ -17,4 +17,9 @@ public class Category {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    @Override
+    public String toString() {
+        return "Category [id=" + id + ", name=" + name + "]";
+    }
 }

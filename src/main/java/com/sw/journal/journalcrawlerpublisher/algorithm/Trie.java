@@ -1,7 +1,6 @@
 package com.sw.journal.journalcrawlerpublisher.algorithm;
 
 import com.sw.journal.journalcrawlerpublisher.domain.Article;
-import jakarta.transaction.Transactional;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -17,24 +16,26 @@ public class Trie {
         root = new TrieNode();
     }
 
-    // 기사를 Trie 에 추가하는 메서드
+    // 기사 제목을 서픽스 트라이로 추가하는 메서드
     public void insert(String title, Article article) {
-        TrieNode node = root;
-        title = title.replace(" ", "");
-        title = title.toLowerCase();
+        title = title.replace(" ", "").toLowerCase();
 
-        for (char c : title.toCharArray()) {
-            node.children.putIfAbsent(c, new TrieNode());
-            node = node.children.get(c);
+        // 모든 서픽스를 트라이에 추가
+        for (int i = 0; i < title.length(); i++) {
+            TrieNode node = root;
+            for (int j = i; j < title.length(); j++) {
+                char c = title.charAt(j);
+                node.children.putIfAbsent(c, new TrieNode());
+                node = node.children.get(c);
+                node.articleList.add(article);
+            }
+            node.isEndOfWord = true;
         }
-        node.isEndOfWord = true;
-        node.articleList.add(article);
     }
 
     // 키워드를 이용해서 기사 제목 검색
     public List<Article> search(String keyword) {
-        keyword = keyword.toLowerCase();
-        keyword = keyword.replace(" ", "");
+        keyword = keyword.toLowerCase().replace(" ", "");
 
         TrieNode node = root;
         for (char c : keyword.toCharArray()) {
@@ -57,7 +58,6 @@ public class Trie {
         }
         return result;
     }
-
 }
 
 class TrieNode {
@@ -65,4 +65,3 @@ class TrieNode {
     boolean isEndOfWord = false;
     List<Article> articleList = new ArrayList<>();
 }
-
