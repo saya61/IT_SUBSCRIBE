@@ -3,17 +3,11 @@ package com.sw.journal.journalcrawlerpublisher.service;
 import com.sw.journal.journalcrawlerpublisher.constant.Role;
 import com.sw.journal.journalcrawlerpublisher.domain.Ban;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
-//import com.sw.journal.journalcrawlerpublisher.domain.SpringUser;
 import com.sw.journal.journalcrawlerpublisher.domain.UserFavoriteCategory;
-import com.sw.journal.journalcrawlerpublisher.domain.VerificationCode;
 import com.sw.journal.journalcrawlerpublisher.repository.BanRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.UserFavoriteCategoryRepository;
-import com.sw.journal.journalcrawlerpublisher.repository.VerificationCodeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +22,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
-    private final VerificationCodeRepository verificationCodeRepository;
     private final UserFavoriteCategoryRepository userFavoriteCategoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final BanRepository banRepository;

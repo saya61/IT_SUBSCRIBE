@@ -23,12 +23,13 @@ class AlarmService {
     private final MailService mailService;
     private final CategoryRepository categoryRepository;
 
+    // Kafka 에서 크롤링 이벤트에 대한 메시지를 수신하는 메서드
     @KafkaListener(topics = "${spring.kafka.template.default-topic}"
             , groupId = "${spring.kafka.consumer.group-id}"
             // properties 속성을 통해 수신한 JSON 메시지를 CrawlingEventDto 로 자동으로 역직렬화
             , properties = {"spring.json.value.default.type:com.sw.journal.journalcrawlerpublisher.dto.CrawlingEventDTO"}
     )
-    public void listen(CrawlingEventDTO eventDTO, Acknowledgment ack) {
+    public void listenCrawlingEvent(CrawlingEventDTO eventDTO, Acknowledgment ack) {
         // Kafka 에서 DTO 를 수신 받아 categoryId와 articleId 추출
         Long categoryId = eventDTO.getCategoryId();
         Long articleId = eventDTO.getArticleId();
