@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+<!--
+1. 기사 조회 로그
+2. 기사 검색 로그
+-->
+    <springProfile name="default">
+        <!-- CONSOLE & FILE appender 기본 정의 -->
+        <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    </springProfile>
+
+    <!-- 0. Spring Boot 기본 콘솔 로그 출력 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/spring-application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/spring-application.%d{yyyy-MM-dd_HH-mm}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-5level %d{yy-MM-dd HH:mm:ss} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 1. ArticleViewLogger -->
+    <appender name="ARTICLE_VIEW" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/article-view.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/article-view.%d{yyyy-MM-dd_HH-mm}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-5level %d{yy-MM-dd HH:mm:ss} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- root는 기본 logger임 -->
+    <root level="INFO">
+        <!-- CONSOLE 어펜더 참조 -->
+        <appender-ref ref="CONSOLE"/>
+        <!-- FILE 로그도 함께 사용해서 향후 디버깅에 할용 -->
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <logger level="INFO"
+            name="com.sw.journal.journalcrawlerpublisher.logController.ArticleViewLogger"
+            additivity="false">
+        <appender-ref ref="ARTICLE_VIEW"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+</configuration>
