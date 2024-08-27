@@ -32,9 +32,11 @@
 //        boolean isHealthy = false;
 //        int tries = 0;
 //        while (!isHealthy && tries < 3) {
+//            redisTemplate.opsForValue().set("isHealthy", "true");
 //            // incr 명령으로 바꾸기 (키 없으면 생성하고 있으면 카운트 올리는 구문)
 //            // exp 타임 구간 정해서 시간 내 restart 횟수 측정
 //            // or exp 없이 날짜 키 사용해서 카운트 계속 올리면 시스템 추이 모니터링 가능
+//            redisTemplate.opsForHash().put("health-check", "tries", tries);
 //            isHealthy = redisTemplate.opsForHash().hasKey(
 //                    "health-check",
 //                    // 아래 연산 바꾸기
