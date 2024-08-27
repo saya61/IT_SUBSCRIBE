@@ -59,8 +59,6 @@ public class MailController {
             return ResponseEntity.badRequest().body("인증코드가 일치하지 않습니다.");
         }
 
-        // 인증 성공 후 DB에서 인증번호 삭제
-        mailService.deleteCode(request.getEmail());
         return ResponseEntity.ok("인증이 완료되었습니다.");
     }
 
@@ -75,9 +73,6 @@ public class MailController {
         if (!mailService.verifyCode(request.getEmail(), request.getCode())) {
             return ResponseEntity.badRequest().body("인증코드가 일치하지 않습니다.");
         }
-
-        // 인증 성공 후 DB에서 인증번호 삭제
-        mailService.deleteCode(request.getEmail());
 
         // 사용자가 입력한 email을 통해 사용자 id를 찾음
         Optional<Member> member = memberRepository.findByEmail(request.getEmail());

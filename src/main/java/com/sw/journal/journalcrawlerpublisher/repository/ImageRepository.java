@@ -14,4 +14,6 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     List<Image> findByArticleIds(@Param("articleIds") List<Long> articleIds);
 
     void deleteByArticleId(Long articleId);
+
+    List<Image> findByArticleId(Long articleId);
 }

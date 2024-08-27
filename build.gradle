@@ -59,6 +59,13 @@ dependencies {
     // WebDriver Manager (크롬 드라이버 자동 설치)
     implementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
 
+    // logger용 AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    implementation 'org.apache.mahout:mahout-mr:0.13.0'
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
     //querydsl
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
