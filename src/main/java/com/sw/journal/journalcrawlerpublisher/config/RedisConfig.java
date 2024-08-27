@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -23,17 +25,37 @@ public class RedisConfig {
     private int port;
 
     @Bean
-    // RedisConnectionFactory : Redis 서버와의 연결을 생성하는 팩토리 인터페이스
     public RedisConnectionFactory redisConnectionFactory() {
-        // return createConnectionFactoryWith(0);  // 0번 데이터베이스 사용
-        return new LettuceConnectionFactory(host, port);
+        return new LettuceConnectionFactory(
+                new RedisStandaloneConfiguration(host, port)
+        );
     }
 
     @Bean
-    // RedisTemplate<String, Object> : Redis에 데이터를 저장하고 조회
-    public RedisTemplate<String, String> redisTemplate() {  // Redis 키는 String 값은 Object
-        RedisTemplate<String, String> template = new RedisTemplate<>();
-        template.setConnectionFactory(redisConnectionFactory());
+    public RedisConnectionFactory redisConnectionFactory0() {
+        RedisStandaloneConfiguration redisConf = new RedisStandaloneConfiguration(
+                host, port
+        );
+        redisConf.setDatabase(0);
+        return new LettuceConnectionFactory(redisConf);
+    }
+
+    @Bean
+    public RedisTemplate<String, String> redisTemplate(
+            RedisConnectionFactory redisConnectionFactory
+    ) {
+        return new StringRedisTemplate(redisConnectionFactory);
+    }
+
+    @Bean
+    public StringRedisTemplate redisTemplateDb0() {
+        return new StringRedisTemplate(redisConnectionFactory0());
+    }
+
+    @Bean
+    public RedisTemplate<String, String> redisObjTemplateDb0() {  // Redis 키는 String 값은 Object
+        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory0());
 
         // Long 타입 값을 직렬화하기 위한 직렬화기
         GenericToStringSerializer<Long> longSerializer = new GenericToStringSerializer<>(Long.class);
@@ -42,10 +64,10 @@ public class RedisConfig {
         Jackson2JsonRedisSerializer<Object> jsonSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
 
         // 조건에 따라 serializer 설정
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new StringRedisSerializer());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
 
-        return template;
+        return redisTemplate;
     }
 }
