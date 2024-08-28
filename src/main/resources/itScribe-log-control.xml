@@ -2,7 +2,8 @@
 <configuration>
 <!--
 1. 기사 조회 로그
-2. 기사 검색 로그
+2. 댓글 삭제 로그
+3. 기사 검색 로그
 -->
     <springProfile name="default">
         <!-- CONSOLE & FILE appender 기본 정의 -->
@@ -34,6 +35,32 @@
         </encoder>
     </appender>
 
+    <!-- 2. CommentDeleteLogger -->
+    <appender name="COMMENT_DELETE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/comment-delete.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/comment-delete.%d{yyyy-MM-dd_HH-mm}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-5level %d{yy-MM-dd HH:mm:ss} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 3. ArticleSearchLogger -->
+    <appender name="ARTICLE_SEARCH" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/article-search.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/article-search.%d{yyyy-MM-dd_HH-mm}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-5level %d{yy-MM-dd HH:mm:ss} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <!-- root는 기본 logger임 -->
     <root level="INFO">
         <!-- CONSOLE 어펜더 참조 -->
@@ -46,6 +73,20 @@
             name="com.sw.journal.journalcrawlerpublisher.logController.ArticleViewLogger"
             additivity="false">
         <appender-ref ref="ARTICLE_VIEW"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger level="INFO"
+            name="com.sw.journal.journalcrawlerpublisher.logController.CommentDeleteLogger"
+            additivity="false">
+        <appender-ref ref="COMMENT_DELETE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger level="INFO"
+            name="com.sw.journal.journalcrawlerpublisher.logController.ArticleSearchLogger"
+            additivity="false">
+        <appender-ref ref="ARTICLE_SEARCH"/>
         <appender-ref ref="CONSOLE"/>
     </logger>
 

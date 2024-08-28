@@ -88,7 +88,7 @@ public class UserBookmarkedArticleController {
         return ResponseEntity.ok(new PageImpl<>(articleDTOs, pageable, articlePage.getTotalElements()));
     }
 
-    @PostMapping("/articles/{articleId}")
+    @GetMapping("/articles/{articleId}")
     public ResponseEntity<Article> getBookmark(@PathVariable Long articleId) {
         // 현재 로그인한 사용자 정보를 가져옴
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
