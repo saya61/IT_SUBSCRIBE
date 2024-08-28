@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class MainPageController {
     private final MainPageService mainPageService;
 
-    @GetMapping("/")
+    @GetMapping("/api/")
     public String mainPage() {
         return mainPageService.getMainPage(); // index 뷰 네임 리턴
     }
