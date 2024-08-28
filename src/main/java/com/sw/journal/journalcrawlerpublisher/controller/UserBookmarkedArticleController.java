@@ -97,9 +97,9 @@ public class UserBookmarkedArticleController {
         // 사용자 id로 Member 객체 조회
         Optional<Member> member = memberRepository.findByUsername(currentUsername);
 
-        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
+        // 사용자가 존재하지 않는 경우 204 No Content 응답 반환
         if (member.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }
         // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();

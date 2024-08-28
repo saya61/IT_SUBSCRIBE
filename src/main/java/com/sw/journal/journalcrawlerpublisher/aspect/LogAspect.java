@@ -2,12 +2,9 @@ package com.sw.journal.journalcrawlerpublisher.aspect;
 
 import com.sw.journal.journalcrawlerpublisher.domain.Comment;
 import com.sw.journal.journalcrawlerpublisher.domain.Member;
-import com.sw.journal.journalcrawlerpublisher.dto.ArticleWithTagsDTO;
-import com.sw.journal.journalcrawlerpublisher.dto.MemberViewArticleDTO;
 import com.sw.journal.journalcrawlerpublisher.logController.ArticleSearchLogger;
 import com.sw.journal.journalcrawlerpublisher.logController.ArticleViewLogger;
 import com.sw.journal.journalcrawlerpublisher.logController.CommentDeleteLogger;
-import com.sw.journal.journalcrawlerpublisher.repository.ArticleRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.CommentRepository;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,14 +13,11 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Aspect
@@ -48,7 +42,7 @@ public class LogAspect {
         return member.get();
     }
 
-    @AfterReturning(pointcut = "execution(* com.sw.journal.journalcrawlerpublisher.controller.ArticleController.articleLogger(..))")
+    @AfterReturning(pointcut = "execution(* com.sw.journal.journalcrawlerpublisher.controller.ArticleController.memberReadArticle(..))")
     public void afterArticleViewReturning(JoinPoint joinPoint) {
         Long articleId = Long.parseLong(joinPoint.getArgs()[0].toString());
         HttpServletRequest request = (HttpServletRequest) joinPoint.getArgs()[1];
@@ -57,7 +51,7 @@ public class LogAspect {
             return;
         }
 
-        ArticleViewLogger.logView(
+        ArticleViewLogger.logArticleView(
                 "ARTICLE_VIEW",
                 LocalDateTime.now().toString(),
                 "/article/view/"+articleId,
@@ -81,7 +75,7 @@ public class LogAspect {
         else {
             return;
         }
-        CommentDeleteLogger.logView(
+        CommentDeleteLogger.logCommentDelete(
                 "COMMENT_DELETE",
                 LocalDateTime.now().toString(),
                 "/api/comment/"+comment.getId().toString(),
@@ -105,7 +99,7 @@ public class LogAspect {
         else {
             currentMemberId = getCurrentMember().getId().toString();
         }
-        ArticleSearchLogger.logView(
+        ArticleSearchLogger.logArticleSearch(
                 "ARTICLE_SEARCH",
                 LocalDateTime.now().toString(),
                 "/article/search/"+keyWords,

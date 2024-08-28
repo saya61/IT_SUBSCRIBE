@@ -2,7 +2,6 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 
 import com.sw.journal.journalcrawlerpublisher.domain.*;
 import com.sw.journal.journalcrawlerpublisher.dto.ArticleWithTagsDTO;
-import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
 import com.sw.journal.journalcrawlerpublisher.dto.MemberViewArticleDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.service.CommentService;
@@ -15,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -102,7 +100,7 @@ public class ArticleController {
     }
 
     @GetMapping("/view/{articleId}")
-    public ResponseEntity<String> articleLogger(@PathVariable Long articleId, HttpServletRequest request) {
+    public ResponseEntity<String> memberReadArticle(@PathVariable Long articleId, HttpServletRequest request) {
         // 현재 로그인한 사용자 정보를 가져옴
         // 사용자를 React에서 저장하지 않음 따라서 파라미터로 받지 못함
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -7,7 +7,7 @@ public class CommentDeleteLogger {
     private static final Logger logger = LogManager.getLogger(CommentDeleteLogger.class);
 
     // 삭제되기 전 댓글의 내용을 저장하기 위한 로거
-    public static void logView(
+    public static void logCommentDelete(
             String logType,         // 요청 유형 (이니셜로 쓰면 좋음)
             String logTime,         // 요청 시간
             String url,             // 요청 엔드포인트
