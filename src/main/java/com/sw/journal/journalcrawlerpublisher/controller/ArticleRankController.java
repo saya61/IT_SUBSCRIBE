@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/rank")
+@RequestMapping("/api/rank")
 public class ArticleRankController {
 
     // 필드 주입에서 생성자 주입으로 변경

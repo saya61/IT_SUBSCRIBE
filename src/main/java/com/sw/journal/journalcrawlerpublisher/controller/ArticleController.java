@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/article")
+@RequestMapping("/api/article")
 public class ArticleController {
 
     private final ArticleService articleService;

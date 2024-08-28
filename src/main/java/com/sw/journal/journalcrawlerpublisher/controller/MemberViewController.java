@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/members")
+@RequestMapping("/api/members")
 public class MemberViewController {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;

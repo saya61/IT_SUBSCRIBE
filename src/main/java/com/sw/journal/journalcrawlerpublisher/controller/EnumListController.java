@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 // DTO 를 적용 안하고 구현
 @RestController
-@RequestMapping("/enum-list")
+@RequestMapping("/api/enum-list")
 public class EnumListController {
 
     // ReportReason Enum 을 반환함

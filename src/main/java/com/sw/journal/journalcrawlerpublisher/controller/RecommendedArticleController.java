@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/recommend-article")
+@RequestMapping("/api/recommend-article")
 public class RecommendedArticleController {
 
     private final RecommendArticleService recommendArticleService;
