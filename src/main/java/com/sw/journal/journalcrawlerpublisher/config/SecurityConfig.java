@@ -38,9 +38,9 @@ public class SecurityConfig {
                 .formLogin(formLogin ->
                         formLogin
                                 // 로그인 페이지의 경로 설정
-                                .loginPage("/api/members/login")
+                                .loginPage("/members/login")
                                 // 로그인 성공 시 리다이렉트할 기본 경로 설정
-                                .defaultSuccessUrl("/api/")
+                                .defaultSuccessUrl("/")
                 )
                 // 세션 관리 설정
                 .sessionManagement(sessionManagement ->
@@ -54,9 +54,9 @@ public class SecurityConfig {
                 .logout(logout ->
                         logout
                                 // 로그아웃 요청을 처리할 경로 설정
-                                .logoutRequestMatcher(new AntPathRequestMatcher("/api/members/logout"))
+                                .logoutRequestMatcher(new AntPathRequestMatcher("/members/logout"))
                                 // 로그아웃 성공 시 리다이렉트할 경로 설정
-                                .logoutSuccessUrl("/api/")
+                                .logoutSuccessUrl("/")
                                 // 로그아웃 시 세션 무효화
                                 .invalidateHttpSession(true)
                 );
