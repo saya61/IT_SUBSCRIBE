@@ -28,9 +28,9 @@ public class SecurityConfig {
                                 // "/api/members/mypage/**" 경로는 인증이 필요
                                 .requestMatchers("/api/members/mypage/**").authenticated()
                                 // 로그인 및 회원가입 페이지는 인증 없이 접근 허용
-                                .requestMatchers("/members/login", "/members/register").permitAll()
+                                .requestMatchers("/api/members/login", "/api/members/register").permitAll()
                                 // "/recommend-article/**" 경로는 인증 없이 접근 허용
-                                .requestMatchers("/recommend-article/**").permitAll()
+                                .requestMatchers("/api/recommend-article/**").permitAll()
                                 // 그 외의 모든 요청은 인증 없이 접근 허용
                                 .anyRequest().permitAll()
                 )
@@ -38,9 +38,9 @@ public class SecurityConfig {
                 .formLogin(formLogin ->
                         formLogin
                                 // 로그인 페이지의 경로 설정
-                                .loginPage("/members/login")
+                                .loginPage("/api/members/login")
                                 // 로그인 성공 시 리다이렉트할 기본 경로 설정
-                                .defaultSuccessUrl("/")
+                                .defaultSuccessUrl("/api/")
                 )
                 // 세션 관리 설정
                 .sessionManagement(sessionManagement ->
@@ -54,9 +54,9 @@ public class SecurityConfig {
                 .logout(logout ->
                         logout
                                 // 로그아웃 요청을 처리할 경로 설정
-                                .logoutRequestMatcher(new AntPathRequestMatcher("/members/logout"))
+                                .logoutRequestMatcher(new AntPathRequestMatcher("/api/members/logout"))
                                 // 로그아웃 성공 시 리다이렉트할 경로 설정
-                                .logoutSuccessUrl("/")
+                                .logoutSuccessUrl("/api/")
                                 // 로그아웃 시 세션 무효화
                                 .invalidateHttpSession(true)
                 );
