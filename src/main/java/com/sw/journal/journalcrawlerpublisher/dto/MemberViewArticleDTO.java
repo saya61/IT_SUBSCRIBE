@@ -11,7 +11,5 @@ import lombok.Setter;
 public class MemberViewArticleDTO {
     private Long memberId;
     private Long articleId;
-    private String memberIp;
-    private String userAgent;
-    private String referrer;
+    private HttpServletRequest request;
 }

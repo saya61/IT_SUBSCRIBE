@@ -2,7 +2,6 @@ package com.sw.journal.journalcrawlerpublisher.controller;
 
 import com.sw.journal.journalcrawlerpublisher.domain.*;
 import com.sw.journal.journalcrawlerpublisher.dto.ArticleWithTagsDTO;
-import com.sw.journal.journalcrawlerpublisher.dto.CommentDTO;
 import com.sw.journal.journalcrawlerpublisher.dto.MemberViewArticleDTO;
 import com.sw.journal.journalcrawlerpublisher.repository.MemberRepository;
 import com.sw.journal.journalcrawlerpublisher.service.CommentService;
@@ -15,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -101,42 +99,8 @@ public class ArticleController {
                 .collect(Collectors.toList());
     }
 
-    // 특정 기사에 대한 모든 댓글 조회
-//    @GetMapping("/article/{articleId}")
-//    public ResponseEntity<List<CommentDTO>> getCommentsByArticle(@PathVariable Long articleId) {
-//        // 기사 ID로 댓글 리스트 조회
-//        List<CommentDTO> comments = commentService.getCommentsByArticle(articleId);
-//        // 조회된 댓글 리스트를 응답으로 반환
-//        return ResponseEntity.ok(comments);
-//    }
-    // 기사 로깅에 사용하는 것으로 변경
-//    @PostMapping("/view/{articleId}")
-//    public ResponseEntity<String> articleLogger(@PathVariable Long articleId, HttpServletRequest request) {
-//        // 현재 로그인한 사용자 정보를 가져옴
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        // 현재 로그인한 사용자의 id를 가져옴
-//        String currentUsername = authentication.getName();
-//        // 사용자 id로 Member 객체 조회
-//        Optional<Member> member = memberRepository.findByUsername(currentUsername);
-//
-//        // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
-//        if (member.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-//        }
-//        // 조회된 Member 객체에서 정보 추출
-//        Member currentMember = member.get();
-//
-//        MemberViewArticleDTO mva = new MemberViewArticleDTO();
-//        mva.setMemberId(currentMember.getId());
-//        mva.setArticleId(articleId);
-//        mva.setRequest(request);
-//        loggingController.createMVALog(mva);
-//
-//        return ResponseEntity.ok("기사 로그");
-//    }
-
-    @PostMapping("/view/{articleId}")
-    public MemberViewArticleDTO articleLogger(@PathVariable Long articleId, HttpServletRequest request) {
+    @GetMapping("/view/{articleId}")
+    public ResponseEntity<String> memberReadArticle(@PathVariable Long articleId, HttpServletRequest request) {
         // 현재 로그인한 사용자 정보를 가져옴
         // 사용자를 React에서 저장하지 않음 따라서 파라미터로 받지 못함
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -147,7 +111,7 @@ public class ArticleController {
 
         // 사용자가 존재하지 않는 경우 401 Unauthorized 응답 반환
         if (member.isEmpty()) {
-            return null;
+            return ResponseEntity.badRequest().body("사용자 없음");
         }
         // 조회된 Member 객체에서 정보 추출
         Member currentMember = member.get();
@@ -155,12 +119,9 @@ public class ArticleController {
         MemberViewArticleDTO mva = new MemberViewArticleDTO();
         mva.setMemberId(currentMember.getId());
         mva.setArticleId(articleId);
-        mva.setMemberIp(request.getRemoteAddr());
-        mva.setUserAgent(request.getHeader("User-Agent"));
-        mva.setReferrer(request.getHeader("Referrer"));
+        mva.setRequest(request);
 
-        return mva;   // HttpServletRequest로 인한 직렬화 문제 발생 DTO에 필요한 것만 사용하도록 수정
-//        return ResponseEntity.ok("기사 조회 로깅");
+        return ResponseEntity.ok("기사 조회 로깅");
     }
 
     // 카테고리 n개로 기사 조회
@@ -461,7 +422,8 @@ public class ArticleController {
     public Page<ArticleWithTagsDTO> searchArticles(
             @PathVariable String keyWords,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
+            @RequestParam(defaultValue = "12") int size,
+            HttpServletRequest request) {
 
         // Trie에서 검색 키워드에 맞는 기사 리스트를 가져옴
         List<Article> searchResults = articleService.searchArticle(keyWords);
