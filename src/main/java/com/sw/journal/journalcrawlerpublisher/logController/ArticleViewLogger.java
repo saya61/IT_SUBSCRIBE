@@ -14,19 +14,17 @@ public class ArticleViewLogger {
             String method,          // HTTP METHODS (GET/POST/PUT/PATCH/DELETE)
             String memberId,        // 사용자 ID
             String articleId,       // 기사 ID
-            String transactionId,   // 요청 고유값 (nullable)
             String memberIp,        // 사용자 IP
             String userAgent,       // 브라우저 등 요청에 사용된 SW 정보
             String referrer         // 직전 페이지 URL
     ) {
-        logger.info(String.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s", // 컬럼 개수 선언
+        logger.info(String.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s", // 컬럼 개수 선언
                         logType,
                         logTime,
                         url,
                         method,
                         memberId,
                         articleId,
-                        transactionId,
                         memberIp,
                         userAgent,
                         referrer

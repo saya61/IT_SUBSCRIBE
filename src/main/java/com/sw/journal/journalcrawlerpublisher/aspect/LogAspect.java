@@ -58,7 +58,6 @@ public class LogAspect {
                 "GET",
                 currentMember.getId().toString(),
                 articleId.toString(),
-                "-",
                 request.getRemoteAddr(),
                 request.getHeader("User-Agent"),
                 request.getHeader("Referrer")
