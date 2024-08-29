@@ -96,7 +96,8 @@ public class CloudTechNewsCrawlerTest {
         executorService.shutdown(); // 작업이 끝나면 스레드풀 종료
     }
 
-    private void processArticle(String articleUrl) {
+    @Async("taskExecutor")
+    protected void processArticle(String articleUrl) {
         try {
             // 기사 중복 검사
             if (articleRepository.findBySource(articleUrl).isPresent()) {
