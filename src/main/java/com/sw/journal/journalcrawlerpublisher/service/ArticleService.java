@@ -93,7 +93,8 @@ public class ArticleService {
         return articleRepository.findByCategoriesAndTags(categories, tags, tags.size());
     }
 
-    // @PostConstruct : 의존성 주입이 끝나면 한번만 실행시킴. Spring 실행 시 한번만 실행됨
+    // @PostConstruct : 의존성 주입이 끝나면 한번만 실행시킴
+    // TODO : Spring 실행 시 한번만 실행됨 따라서 @Scheduled를 사용하는 것이 더 좋다 판단함
     @PostConstruct
     public void initializeTrie(){
         // category 를 eager 하게 불러오도록 쿼리 변경

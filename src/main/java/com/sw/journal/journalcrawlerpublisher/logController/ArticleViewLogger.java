@@ -8,26 +8,24 @@ public class ArticleViewLogger {
 
     // 조회된 기사 정보 및 사용자 정보를 저장하기 위한 로거
     public static void logArticleView(
-            String logType,         // 요청 유형 (이니셜로 쓰면 좋음)
-            String logTime,         // 요청 시간
-            String url,             // 요청 엔드포인트
-            String method,          // HTTP METHODS (GET/POST/PUT/PATCH/DELETE)
-            String memberId,        // 사용자 ID
-            String articleId,       // 기사 ID
-            String memberIp,        // 사용자 IP
-            String userAgent,       // 브라우저 등 요청에 사용된 SW 정보
-            String referrer         // 직전 페이지 URL
+            String logType,
+            String logTime,
+            String url,
+            String method,
+            String memberId,
+            String articleId,
+            String memberIp,
+            String userAgent
     ) {
-        logger.info(String.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s", // 컬럼 개수 선언
+        logger.info(String.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
                         logType,
                         logTime,
                         url,
                         method,
-                        memberId,
+                        memberId != null ? memberId : "-",
                         articleId,
                         memberIp,
-                        userAgent,
-                        referrer
+                        userAgent
                 )
         );
     }

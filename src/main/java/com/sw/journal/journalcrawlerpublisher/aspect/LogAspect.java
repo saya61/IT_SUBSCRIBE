@@ -42,7 +42,7 @@ public class LogAspect {
         return member.get();
     }
 
-    @AfterReturning(pointcut = "execution(* com.sw.journal.journalcrawlerpublisher.controller.ArticleController.memberReadArticle(..))")
+    @AfterReturning(pointcut = "execution(* com.sw.journal.journalcrawlerpublisher.controller.ArticleController.articleView(..))")
     public void afterArticleViewReturning(JoinPoint joinPoint) {
         Long articleId = Long.parseLong(joinPoint.getArgs()[0].toString());
         HttpServletRequest request = (HttpServletRequest) joinPoint.getArgs()[1];
@@ -59,8 +59,8 @@ public class LogAspect {
                 currentMember.getId().toString(),
                 articleId.toString(),
                 request.getRemoteAddr(),
-                request.getHeader("User-Agent"),
-                request.getHeader("Referrer")
+                request.getHeader("User-Agent")
+//                request.getHeader("Referrer")
         );
     }
 

@@ -151,12 +151,19 @@ public class UserBookmarkedArticleController {
         }
         Article article = optionalArticle.get();
 
-        UserBookmarkedArticle userBookmarkedArticle = new UserBookmarkedArticle();
-        userBookmarkedArticle.setMember(currentMember);
-        userBookmarkedArticle.setArticle(article);
-        userBookmarkedArticleRepository.save(userBookmarkedArticle);
+        Optional<UserBookmarkedArticle> bookmarkedArticle = bookmarkService.findBookmarkedArticlesByMemberAndArticle(currentMember, article);
 
-        return ResponseEntity.ok("기사가 북마크에 추가되었습니다.");
+        if(bookmarkedArticle.isEmpty()){
+            UserBookmarkedArticle userBookmarkedArticle = new UserBookmarkedArticle();
+            userBookmarkedArticle.setMember(currentMember);
+            userBookmarkedArticle.setArticle(article);
+            userBookmarkedArticleRepository.save(userBookmarkedArticle);
+
+            return ResponseEntity.ok("기사가 북마크에 추가되었습니다.");
+        }
+        else {
+            return ResponseEntity.ok("기사가 이미 추가되었습니다.");
+        }
     }
 
     @DeleteMapping("/delete-bookmark/{articleId}")

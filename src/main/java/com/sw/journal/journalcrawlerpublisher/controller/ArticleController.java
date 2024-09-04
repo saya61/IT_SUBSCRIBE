@@ -100,7 +100,7 @@ public class ArticleController {
     }
 
     @GetMapping("/view/{articleId}")
-    public ResponseEntity<String> memberReadArticle(@PathVariable Long articleId, HttpServletRequest request) {
+    public ResponseEntity<String> articleView(@PathVariable Long articleId, HttpServletRequest request) {
         // 현재 로그인한 사용자 정보를 가져옴
         // 사용자를 React에서 저장하지 않음 따라서 파라미터로 받지 못함
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -113,7 +113,7 @@ public class ArticleController {
         if (member.isEmpty()) {
             return ResponseEntity.badRequest().body("사용자 없음");
         }
-        // 조회된 Member 객체에서 정보 추출
+        // 조회된 Member
         Member currentMember = member.get();
 
         MemberViewArticleDTO mva = new MemberViewArticleDTO();
